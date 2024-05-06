@@ -1,0 +1,30 @@
+from pydantic import BaseModel
+from preprocessing.model.exclusion import Exclusion
+from preprocessing.model.resource import Resource
+from preprocessing.model.intervention import Intervention
+from preprocessing.model.time_horizon import TimeHorizon
+
+
+class Problem(BaseModel):
+    """
+    Represents a maintenance planning problem.
+
+    Attributes:
+        resources (list[Resource]): A list of resources available for maintenance.
+        interventions (list[Intervention]): A list of interventions to be performed.
+        exclusions (list[Exclusion]): A list of exclusions between interventions.
+        time_horizon (TimeHorizon): The time horizon for the maintenance planning.
+        scenarios (list[int]): A list of scenarios for stochastic optimization.
+        quantile (float): The quantile value for stochastic optimization.
+        alpha (float): The alpha value for stochastic optimization.
+        computation_time (float): The computation time for solving the problem.
+    """
+
+    resources: list[Resource] = []
+    interventions: list[Intervention] = []
+    exclusions: list[Exclusion] = []
+    time_horizon: TimeHorizon = None
+    scenarios: list[int] = []
+    quantile: float = None
+    alpha: float = None
+    computation_time: float | None = None

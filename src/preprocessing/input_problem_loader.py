@@ -1,0 +1,307 @@
+import json
+from typing import Any
+from preprocessing.model.resource import Resource
+from preprocessing.model.exclusion import Exclusion
+from preprocessing.model.intervention import Intervention
+from preprocessing.model.problem import Problem
+from preprocessing.model.risk import Risk
+from preprocessing.model.season import Season
+from preprocessing.model.time_horizon import TimeHorizon
+
+
+class InputProblemLoader:
+    """
+    A class responsible for loading an input problem from a file.
+
+    Args:
+        path (str): The path to the input problem file.
+
+    Raises:
+        FileNotFoundError: If the specified file is not found.
+
+    """
+
+    def __init__(self, path: str):
+        self.path = path
+
+    def __call__(self) -> dict:
+        """
+        Loads the input problem from the specified file.
+
+        Returns:
+            dict: The loaded problem as a dictionary.
+
+        Raises:
+            FileNotFoundError: If the specified file is not found.
+
+        """
+        return self._execute()
+
+    def _parse(self) -> dict:
+        try:
+            with open(self.path, "r") as file:
+                data = json.load(file)
+            return data
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File {self.path} not found")
+
+    def _get_workload(
+        self, input_data: dict, resources: list[Resource]
+    ) -> list[Resource]:
+        """
+        Retrieves the workload for each resource based on the input data.
+
+        Args:
+            input_data (dict): A dictionary containing the workload data for each resource.
+            resources (list[Resource]): A list of Resource objects representing the available resources.
+
+        Returns:
+            list[Resource]: A list of Resource objects with the workload information updated.
+
+        """
+        list_workload_resources = list(input_data.keys())
+
+        workload_resources = []
+        for resource in resources:
+            if resource.name in list_workload_resources:
+                resource.workload = input_data[resource.name]
+                workload_resources.append(resource)
+
+        return workload_resources
+
+    def _get_resources(self, input_data: dict) -> list[Resource]:
+        """
+        Get a list of Resource objects from the given input data.
+
+        Args:
+            data (dict): The input data containing resource information.
+
+        Returns:
+            list[Resource]: A list of Resource objects.
+
+        """
+        resources_data = input_data["Resources"]
+        resource_names = list(resources_data.keys())
+        resources = []
+
+        for index, resource in enumerate(resources_data.values()):
+            resources.append(
+                Resource(
+                    name=resource_names[index],
+                    max=resource["max"],
+                    min=resource["min"],
+                )
+            )
+
+        return resources
+
+    def _get_risk(self, input_data: dict) -> list[int]:
+        """
+        Get the list of risks from the input data.
+
+        Args:
+            input_data (dict): A dictionary containing the input data.
+
+        Returns:
+            list[Risk]: A list of Risk objects representing the risks.
+
+        """
+        time_steps = list(input_data.keys())
+        list_risks = []
+        for index, risk in enumerate(input_data.values()):
+            list_risks.append(
+                Risk(
+                    time_step=int(time_steps[index]),
+                    start_time_step=[int(key) for key in risk.keys()],
+                    scenarios=[
+                        int(scenario)
+                        for sublist in risk.values()
+                        for scenario in sublist
+                    ],
+                )
+            )
+
+        return list_risks
+
+    def _get_interventions(
+        self, input_data: dict, resources: list[Resource]
+    ) -> list[Intervention]:
+        """
+        Get a list of Intervention objects based on the input data and resources.
+
+        Args:
+            input_data (dict): The input data containing information about interventions.
+            resources (list[Resource]): The list of available resources.
+
+        Returns:
+            list[Intervention]: A list of Intervention objects.
+
+        """
+        interventions_data = input_data["Interventions"]
+        intervention_names = list(interventions_data.keys())
+        interventions = []
+
+        for index, intervention in enumerate(interventions_data.values()):
+            interventions.append(
+                Intervention(
+                    name=intervention_names[index],
+                    tmax=intervention["tmax"],
+                    delta=intervention["Delta"],
+                    resource_workload=self._get_workload(
+                        input_data=intervention["workload"], resources=resources
+                    ),
+                    risk=self._get_risk(intervention["risk"]),
+                )
+            )
+
+        return interventions
+
+    def _get_season_duration(self, season: dict, seasons: str) -> int:
+        if season in seasons:
+            return [int(s) for s in seasons[season]]
+        else:
+            raise ValueError(f"Season {season} not found in the input data")
+
+    def _get_season(self, input_data: dict, seasons: dict) -> Season:
+        season_name = input_data[-1]
+        season = Season(
+            name=season_name,
+            duration=self._get_season_duration(season_name, seasons),
+        )
+
+        return season
+
+    def _get_exclusions(
+        self, input_data: dict, interventions: list[Intervention]
+    ) -> list[Exclusion]:
+        """
+        Get the list of exclusions based on the input data and interventions.
+
+        Args:
+            input_data (dict): The input data containing exclusions information.
+            interventions (list[Intervention]): The list of interventions.
+
+        Returns:
+            list[Exclusion]: The list of exclusions.
+
+        """
+        exclusions_data = input_data["Exclusions"]
+        seasons = input_data["Seasons"]
+        exclusions_names = list(exclusions_data.keys())
+        exclusions = []
+        for index, exclusion in enumerate(exclusions_data.values()):
+            exclusions.append(
+                Exclusion(
+                    name=exclusions_names[index],
+                    interventions=[
+                        intervention
+                        for intervention in interventions
+                        if intervention.name in exclusion
+                    ],
+                    season=self._get_season(exclusion, seasons),
+                )
+            )
+
+        return exclusions
+
+    def _get_time_horizon(self, input_data: dict) -> TimeHorizon:
+        """
+        Extracts the time horizon from the input data.
+
+        Args:
+            input_data (dict): The input data containing the time horizon information.
+
+        Returns:
+            TimeHorizon: An instance of the TimeHorizon class representing the extracted time horizon.
+        """
+        time_horizon_data = input_data["T"]
+        return TimeHorizon(
+            time_steps=time_horizon_data,
+        )
+
+    def _get_scenarios(self, input_data: dict) -> list[int]:
+        """
+        Get the list of scenarios from the input data.
+
+        Parameters:
+            input_data (dict): The input data containing the scenarios.
+
+        Returns:
+            list[int]: The list of scenarios as integers.
+        """
+        scenarios_data = input_data["Scenarios_number"]
+        return [int(scenario) for scenario in scenarios_data]
+
+    def _get_quantile(self, input_data: dict) -> float:
+        """
+        Get the quantile value from the input data.
+
+        Parameters:
+            input_data (dict): The input data containing the quantile value.
+
+        Returns:
+            float: The quantile value as a float.
+        """
+        return float(input_data["Quantile"])
+
+    def _get_alpha(self, input_data: dict) -> float:
+        """
+        Get the alpha value from the input data.
+
+        Parameters:
+            input_data (dict): The input data containing the alpha value.
+
+        Returns:
+            float: The alpha value as a float.
+        """
+        return float(input_data["Alpha"])
+
+    def _get_computation_time(self, input_data: dict) -> float:
+        """
+        Get the computation time from the input data.
+
+        Parameters:
+            input_data (dict): The input data containing the computation time.
+
+        Returns:
+            float: The computation time as a float.
+        """
+        try:
+            return float(input_data["ComputationTime"])
+        except KeyError:
+            return None
+
+    def _execute(self) -> Problem:
+        """
+        Execute the input problem loading process and return the loaded problem.
+
+        Args:
+            None
+
+        Returns:
+            Problem: The loaded problem.
+        """
+
+        data = self._parse()
+
+        resources = self._get_resources(input_data=data)
+        interventions = self._get_interventions(input_data=data, resources=resources)
+        exclusions = self._get_exclusions(input_data=data, interventions=interventions)
+        time_horizon = self._get_time_horizon(input_data=data)
+        scenarios = self._get_scenarios(input_data=data)
+        quantile = self._get_quantile(input_data=data)
+        alpha = self._get_alpha(input_data=data)
+        computation_time = self._get_computation_time(input_data=data)
+
+        problem = Problem(
+            resources=resources,
+            interventions=interventions,
+            exclusions=exclusions,
+            time_horizon=time_horizon,
+            scenarios=scenarios,
+            quantile=quantile,
+            alpha=alpha,
+            computation_time=computation_time,
+        )
+
+        return problem
