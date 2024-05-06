@@ -7,11 +7,11 @@ class Resource(BaseModel):
 
     Attributes:
         name (str): The name of the resource.
-        max (list[int]): The maximum capacity of the resource for each time period.
-        min (list[int]): The minimum capacity of the resource for each time period.
+        max (list[int | float]): The maximum capacity of the resource for each time period.
+        min (list[int | float]): The minimum capacity of the resource for each time period.
     """
 
     name: str
-    max: list[int]
-    min: list[int]
+    max: list[int | float]
+    min: list[int | float]
     workload: list[dict[int, float]] = []
