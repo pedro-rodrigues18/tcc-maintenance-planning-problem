@@ -23,8 +23,8 @@ class Problem(BaseModel):
     resources: list[Resource] = []
     interventions: list[Intervention] = []
     exclusions: list[Exclusion] = []
-    time_horizon: TimeHorizon = None
+    time_horizon: TimeHorizon
     scenarios: list[int] = []
-    quantile: float = None
-    alpha: float = None
+    quantile: float | None = None
+    alpha: float | None = None
     computation_time: float | None = None

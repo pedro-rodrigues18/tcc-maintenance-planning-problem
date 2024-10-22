@@ -1,5 +1,8 @@
 import json
+import time
 from typing import Any
+
+import numpy as np
 from preprocessing.model.resource import Resource
 from preprocessing.model.exclusion import Exclusion
 from preprocessing.model.intervention import Intervention
@@ -45,31 +48,7 @@ class InputProblemLoader:
         except FileNotFoundError:
             raise FileNotFoundError(f"File {self.path} not found")
 
-    def _get_workload(
-        self, input_data: dict, resources: list[Resource]
-    ) -> list[Resource]:
-        """
-        Retrieves the workload for each resource based on the input data.
-
-        Args:
-            input_data (dict): A dictionary containing the workload data for each resource.
-            resources (list[Resource]): A list of Resource objects representing the available resources.
-
-        Returns:
-            list[Resource]: A list of Resource objects with the workload information updated.
-
-        """
-        list_workload_resources = list(input_data.keys())
-
-        workload_resources = []
-        for resource in resources:
-            if resource.name in list_workload_resources:
-                resource.workload = input_data[resource.name]
-                workload_resources.append(resource)
-
-        return workload_resources
-
-    def _get_resources(self, input_data: dict) -> list[Resource]:
+    def _get_resources(self, input_data: dict) -> np.ndarray[Resource]:
         """
         Get a list of Resource objects from the given input data.
 
@@ -82,16 +61,16 @@ class InputProblemLoader:
         """
         resources_data = input_data["Resources"]
         resource_names = list(resources_data.keys())
-        resources = []
+        resources = np.array([])
 
-        for index, resource in enumerate(resources_data.values()):
-            resources.append(
-                Resource(
-                    name=resource_names[index],
-                    max=resource["max"],
-                    min=resource["min"],
-                )
-            )
+        resources = np.append(
+            resources,
+            Resource(
+                name=resource_names[0],
+                max=resources_data[resource_names[0]]["max"],
+                min=resources_data[resource_names[0]]["min"],
+            ),
+        )
 
         return resources
 
@@ -125,7 +104,7 @@ class InputProblemLoader:
 
     def _get_interventions(
         self, input_data: dict, resources: list[Resource]
-    ) -> list[Intervention]:
+    ) -> np.ndarray[Intervention]:
         """
         Get a list of Intervention objects based on the input data and resources.
 
@@ -139,26 +118,28 @@ class InputProblemLoader:
         """
         interventions_data = input_data["Interventions"]
         intervention_names = list(interventions_data.keys())
-        interventions = []
+        interventions = np.array([])
 
         for index, intervention in enumerate(interventions_data.values()):
-            interventions.append(
+            # print(resources)
+            # print(intervention["workload"])
+            # breakpoint()
+            interventions = np.append(
+                interventions,
                 Intervention(
                     name=intervention_names[index],
                     tmax=intervention["tmax"],
                     delta=intervention["Delta"],
-                    resource_workload=self._get_workload(
-                        input_data=intervention["workload"], resources=resources
-                    ),
+                    resource_workload=intervention["workload"],
                     risk=self._get_risk(intervention["risk"]),
-                )
+                ),
             )
 
         return interventions
 
     def _get_season_duration(self, season: dict, seasons: str) -> int:
         if season in seasons:
-            return [int(s) for s in seasons[season]]
+            return np.array([int(s) for s in seasons[season]])
         else:
             raise ValueError(f"Season {season} not found in the input data")
 
@@ -173,7 +154,7 @@ class InputProblemLoader:
 
     def _get_exclusions(
         self, input_data: dict, interventions: list[Intervention]
-    ) -> list[Exclusion]:
+    ) -> np.ndarray[Exclusion]:
         """
         Get the list of exclusions based on the input data and interventions.
 
@@ -188,19 +169,20 @@ class InputProblemLoader:
         exclusions_data = input_data["Exclusions"]
         seasons = input_data["Seasons"]
         exclusions_names = list(exclusions_data.keys())
-        exclusions = []
-        for index, exclusion in enumerate(exclusions_data.values()):
-            exclusions.append(
-                Exclusion(
-                    name=exclusions_names[index],
-                    interventions=[
-                        intervention
-                        for intervention in interventions
-                        if intervention.name in exclusion
-                    ],
-                    season=self._get_season(exclusion, seasons),
-                )
-            )
+        exclusions = np.array([])
+
+        exclusions = np.append(
+            exclusions,
+            Exclusion(
+                name=exclusions_names[0],
+                interventions=[
+                    intervention.name
+                    for intervention in interventions
+                    if intervention.name in exclusions_data[exclusions_names[0]]
+                ],
+                season=self._get_season(exclusions_data[exclusions_names[0]], seasons),
+            ),
+        )
 
         return exclusions
 
@@ -230,7 +212,7 @@ class InputProblemLoader:
             list[int]: The list of scenarios as integers.
         """
         scenarios_data = input_data["Scenarios_number"]
-        return [int(scenario) for scenario in scenarios_data]
+        return np.array([int(scenario) for scenario in scenarios_data])
 
     def _get_quantile(self, input_data: dict) -> float:
         """
@@ -281,6 +263,9 @@ class InputProblemLoader:
         Returns:
             Problem: The loaded problem.
         """
+        start_time = time.time()
+
+        print("\nLoading the problem...")
 
         data = self._parse()
 
@@ -303,5 +288,10 @@ class InputProblemLoader:
             alpha=alpha,
             computation_time=computation_time,
         )
+
+        total_time = time.time() - start_time
+
+        print("Problem loaded successfully!")
+        print(f"Elapsed time: {total_time:.2f} seconds")
 
         return problem

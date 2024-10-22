@@ -1,6 +1,7 @@
 import os
 
 from preprocessing.input_problem_loader import InputProblemLoader
+
 from processing.optimization_step import OptimizationStep
 
 
@@ -10,17 +11,30 @@ def main():
     Professor: Dr. André Luiz Maravilha da Silva
     """
     # ------------- Load the Problem Here ----------------
-
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    input_path = os.path.join(current_dir, "../instances/example/example1.json")
+    file_name = "E_01"
+    input_path = os.path.join(current_dir, f"../input/{file_name}.json")
     problem_loader = InputProblemLoader(input_path)
 
     problem = problem_loader()
 
     # ------------- Make the Optimization Here ----------------
 
+    print("\nOptimizing the problem...")
+
     optimization_step = OptimizationStep(problem)
-    pass
+
+    optimization_info = optimization_step()
+
+    print("\nOptimization completed.")
+    print("\nBest solution:")
+    print(optimization_info["solution"])
+    # print("\nObjective value:")
+    # print(optimization_info["fitness"])
+    print("\n")
+
+    with open(f"output/{file_name}.txt", "w") as f:
+        f.write(optimization_info["solution"])
 
 
 if __name__ == "__main__":
