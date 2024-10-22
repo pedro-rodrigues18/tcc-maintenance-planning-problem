@@ -292,6 +292,6 @@ class InputProblemLoader:
         total_time = time.time() - start_time
 
         print("Problem loaded successfully!")
-        print(f"Elapsed time: {total_time:.2f} seconds")
+        print(f"Elapsed time: {total_time:.4f} seconds")
 
         return problem

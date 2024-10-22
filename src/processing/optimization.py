@@ -21,7 +21,7 @@ class Optimization:
             objective_value (float): Objective function value
         """
         if not self._constraints_satisfied(start_times):
-            return float("inf")
+            return 1e9
 
         T = self.problem.time_horizon.time_steps
         alpha = self.problem.alpha

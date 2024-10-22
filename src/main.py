@@ -11,8 +11,9 @@ def main():
     Professor: Dr. André Luiz Maravilha da Silva
     """
     # ------------- Load the Problem Here ----------------
+
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_name = "E_01"
+    file_name = "A_01"
     input_path = os.path.join(current_dir, f"../input/{file_name}.json")
     problem_loader = InputProblemLoader(input_path)
 
@@ -27,8 +28,8 @@ def main():
     optimization_info = optimization_step()
 
     print("\nOptimization completed.")
-    print("\nBest solution:")
-    print(optimization_info["solution"])
+    # print("\nBest solution:")
+    # print(optimization_info["solution"])
     # print("\nObjective value:")
     # print(optimization_info["fitness"])
     print("\n")

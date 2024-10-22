@@ -28,6 +28,7 @@ class OptimizationStep:
             obj_func=optimization._build_objective_function,
             bounds=bounds,
             problem=self.problem,
+            mutation_strategy="best/1",
         )
 
         solution, fitness = de.optimize()
