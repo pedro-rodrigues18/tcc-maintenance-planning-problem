@@ -9,10 +9,10 @@ class DifferentialEvolution:
         obj_func,
         bounds,
         problem,
-        pop_size=1000,
+        pop_size=20,
         mutation_factor=0.8,
         crossover_prob=0.7,
-        time_limit=10,  # seconds
+        time_limit=60 * 15,  # seconds
         tol=1e-6,
     ):
         self.optimization = optimization
@@ -60,7 +60,10 @@ class DifferentialEvolution:
                 trial = np.where(cross_points, mutant, pop[j])
 
                 # Evaluate restrictions
-                if not self.optimization._constraints_satisfied(trial.tolist()):
+                constraints_satisfied, _ = self.optimization._constraints_satisfied(
+                    trial.tolist()
+                )
+                if not constraints_satisfied:
                     new_pop[j] = pop[j]
                     continue
 
@@ -79,6 +82,8 @@ class DifferentialEvolution:
 
             pop = new_pop
 
+        print("Pop: ", pop)
+        print("Fitness: ", fitness)
         best_idx = fitness.argmin()
         best_individual = pop[best_idx]
 

@@ -149,7 +149,7 @@ class InputProblemLoader:
             name=season_name,
             duration=self._get_season_duration(season_name, seasons),
         )
-
+        # print(season)
         return season
 
     def _get_exclusions(
