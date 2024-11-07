@@ -12,7 +12,7 @@ def main():
     """
     # ------------- Load the Problem Here ----------------
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_name = "A_01"
+    file_name = "E_01"
     input_path = os.path.join(current_dir, f"../input/{file_name}.json")
     problem_loader = InputProblemLoader(input_path)
 
@@ -29,12 +29,16 @@ def main():
     print("\nOptimization completed.")
     print("\nBest solution:")
     print(optimization_info["solution"])
-    # print("\nObjective value:")
-    # print(optimization_info["fitness"])
+    print("\nObjective value:")
+    print(optimization_info["fitness"])
     print("\n")
+
+    print("Saving the solution to the output file...")
 
     with open(f"output/{file_name}.txt", "w") as f:
         f.write(optimization_info["solution"])
+
+    print("Done!")
 
 
 if __name__ == "__main__":

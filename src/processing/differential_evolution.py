@@ -12,7 +12,7 @@ class DifferentialEvolution:
         pop_size=20,
         mutation_factor=0.8,
         crossover_prob=0.7,
-        time_limit=60 * 15,  # seconds
+        time_limit=5,  # seconds
         tol=1e-6,
     ):
         self.optimization = optimization
@@ -36,6 +36,7 @@ class DifferentialEvolution:
 
         while True:
             elapsed_time = time.time() - start_time
+            # print(f"Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
             if elapsed_time > self.time_limit:
                 print(f"Maximum execution time reached: {elapsed_time:.2f} seconds.")
                 break
@@ -45,12 +46,21 @@ class DifferentialEvolution:
                 idx = np.random.choice(self.pop_size, 3, replace=False)
                 a, b, c = pop[idx]
 
+                # print("Individual a: ", a)
+                # print("Individual b: ", b)
+                # print("Individual c: ", c)
+
                 # Mutation
                 mutant = np.clip(
                     a + self.mutation_factor * (b - c),
                     self.bounds[:, 0],
                     self.bounds[:, 1],
                 ).astype(int)
+
+                # print("Mutant: ", mutant)
+                # print("Mutant shape: ", mutant.shape)
+
+                # breakpoint()
 
                 # Crossover
                 cross_points = (
@@ -59,11 +69,18 @@ class DifferentialEvolution:
                 cross_points[np.random.randint(0, self.bounds.shape[0])] = True
                 trial = np.where(cross_points, mutant, pop[j])
 
+                # print("Trial: ", trial)
+                # print("Trial shape: ", trial.shape)
+
+                # breakpoint()
+
                 # Evaluate restrictions
                 constraints_satisfied, _ = self.optimization._constraints_satisfied(
                     trial.tolist()
                 )
-                if not constraints_satisfied:
+                if constraints_satisfied:
+                    print("Constraints satisfied.")
+                    print("Trial: ", trial)
                     new_pop[j] = pop[j]
                     continue
 
@@ -80,9 +97,12 @@ class DifferentialEvolution:
             if np.all(np.abs(fitness - fitness.mean()) < self.tol):
                 break
 
+            # print("New pop: ", new_pop)
+            # print("Pop: ", pop)
+
             pop = new_pop
 
-        print("Pop: ", pop)
+        print("\n\nPop: ", pop)
         print("Fitness: ", fitness)
         best_idx = fitness.argmin()
         best_individual = pop[best_idx]

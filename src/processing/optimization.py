@@ -28,14 +28,19 @@ class Optimization:
         mean_risk = 0.0
         expected_excess = 0.0
 
+        # TODO: FIX OBJECTIVE FUNCTION
         for t in range(T):
             risks_at_t = []
 
             for i, intervention in enumerate(self.problem.interventions):
                 start_time = start_times[i]
+                # print("Intervention risk: ", intervention.risk)
 
+                # breakpoint()
                 if start_time <= t < start_time + intervention.delta[start_time - 1]:
                     for risk in intervention.risk:
+                        # print("Intervention risk scenarios: ", risk.scenarios)
+                        # breakpoint()
                         if risk.time_step == t + 1:
                             risks_at_t.extend(risk.scenarios)
 
@@ -90,7 +95,7 @@ class Optimization:
                 # print("Start time: ", start_time)
                 # print("Tmax: ", intervention.tmax)
                 penalty += start_time - intervention.tmax
-                return False, penalty
+                return True, penalty
 
             if (
                 start_time + intervention.delta[start_time - 1] - 1
@@ -102,9 +107,9 @@ class Optimization:
                 penalty = (
                     start_time + intervention.delta[start_time - 1] - 1
                 ) - self.problem.time_horizon.time_steps
-                return False, penalty
+                return True, penalty
 
-        return True, penalty
+        return False, penalty
 
     def _resources_constraint(self, start_times) -> bool:
         """
@@ -118,16 +123,16 @@ class Optimization:
         """
         eps = 1e-6
         penalty = 0
-        for t in range(1, self.problem.time_horizon.time_steps):
+        for t in range(1, self.problem.time_horizon.time_steps + 1):
             # print("Time step: ", t)
             # breakpoint()
             for resource in self.problem.resources:
                 total_resource_usage = 0
                 for i, intervention in enumerate(self.problem.interventions):
                     start_time = start_times[i]
-                    # print("start_times: ", len(start_times))
+                    # print("start_times: ", start_time)
                     # print("i: ", i)
-                    # print("delta: ", len(intervention.delta))
+                    # print("delta: ", intervention.delta[start_time - 1])
                     if (
                         start_time
                         <= t
@@ -136,24 +141,33 @@ class Optimization:
                         # print("t: ", t)
                         # print("Resource workload: ", intervention.resource_workload)
                         # print("Resource name: ", resource.name)
+                        # print(
+                        #     "TESTE: ",
+                        #     intervention.resource_workload[resource.name][str(t)],
+                        # )
                         try:
-                            if t in intervention.resource_workload[resource.name]:
+                            # print(">>> TESTE 1")
+                            if intervention.resource_workload[resource.name][str(t)]:
                                 total_resource_usage += intervention.resource_workload[
                                     resource.name
-                                ][t]
+                                ][str(t)][str(start_time)]
+
                         except KeyError:
                             pass
 
                 # Verifica se o uso de recursos está dentro dos limites de mínimo e máximo
+                # print("Resource: ", resource)
                 if (
-                    total_resource_usage < resource.min[t] - eps
-                    or total_resource_usage > resource.max[t] + eps
+                    total_resource_usage < resource.min[t - 1] - eps
+                    or total_resource_usage > resource.max[t - 1] + eps
                 ):
-                    # print("Resource usage: ", total_resource_usage)
-                    penalty += abs(total_resource_usage - resource.max[t])
-                    return False, penalty
+                    # print("Resource min: ", resource.min)
+                    # print(f"Resource usage: {total_resource_usage} in time step {t}")
+                    # print("Resource max: ", resource.max)
+                    penalty += abs(total_resource_usage - resource.max[t - 1])
+                    return True, penalty
 
-        return True, penalty
+        return False, penalty
 
     def _exclusion_constraint(self, start_times) -> bool:
         """
@@ -199,9 +213,9 @@ class Optimization:
                 for t in range(t_start, t_end + 1):
                     if t in season.duration:
                         penalty += 1
-                        return False, penalty
+                        return True, penalty
 
-        return True, penalty
+        return False, penalty
 
     def _constraints_satisfied(self, start_times) -> bool:
 
@@ -211,22 +225,24 @@ class Optimization:
         resources_constraint = self._resources_constraint(start_times)
         exclusion_constraint = self._exclusion_constraint(start_times)
 
-        if not intervention_constraint[0]:
+        if intervention_constraint[0]:
             # print("Intervention constraint violated.")
             # print("Penalty: ", intervention_constraint[1])
             penalty += intervention_constraint[1]
-        if not resources_constraint[0]:
+        if resources_constraint[0]:
             # print("Resources constraint violated.")
             # print("Penalty: ", resources_constraint[1])
             penalty += resources_constraint[1]
-        if not exclusion_constraint[0]:
+        if exclusion_constraint[0]:
             # print("Exclusion constraint violated.")
             # print("Penalty: ", exclusion_constraint[1])
             penalty += exclusion_constraint[1]
 
         return (
-            intervention_constraint[0]
-            and resources_constraint[0]
-            and exclusion_constraint[0],
+            not (
+                intervention_constraint[0]
+                or resources_constraint[0]
+                or exclusion_constraint[0]
+            ),
             penalty,
         )
