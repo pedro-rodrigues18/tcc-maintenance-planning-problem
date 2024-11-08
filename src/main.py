@@ -12,7 +12,7 @@ def main():
     """
     # ------------- Load the Problem Here ----------------
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_name = "E_01"
+    file_name = "A_01"
     input_path = os.path.join(current_dir, f"../input/{file_name}.json")
     problem_loader = InputProblemLoader(input_path)
 

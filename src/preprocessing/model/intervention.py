@@ -17,6 +17,5 @@ class Intervention(BaseModel):
     name: str = ""
     tmax: int = 0
     delta: list[int] = []
-    # resource_workload: list[Resource] = []
     resource_workload: dict[str, dict[str, dict[str, float]]] = {}
-    risk: list[Risk] = []
+    risk: dict[str, dict[str, list[float]]] = {}

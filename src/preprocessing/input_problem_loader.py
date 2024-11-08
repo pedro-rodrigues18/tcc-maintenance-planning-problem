@@ -74,33 +74,33 @@ class InputProblemLoader:
 
         return resources
 
-    def _get_risk(self, input_data: dict) -> list[int]:
-        """
-        Get the list of risks from the input data.
+    # def _get_risk(self, input_data: dict) -> list[int]:
+    #     """
+    #     Get the list of risks from the input data.
 
-        Args:
-            input_data (dict): A dictionary containing the input data.
+    #     Args:
+    #         input_data (dict): A dictionary containing the input data.
 
-        Returns:
-            list[Risk]: A list of Risk objects representing the risks.
+    #     Returns:
+    #         list[Risk]: A list of Risk objects representing the risks.
 
-        """
-        time_steps = list(input_data.keys())
-        list_risks = []
-        for index, risk in enumerate(input_data.values()):
-            list_risks.append(
-                Risk(
-                    time_step=int(time_steps[index]),
-                    start_time_step=[int(key) for key in risk.keys()],
-                    scenarios=[
-                        int(scenario)
-                        for sublist in risk.values()
-                        for scenario in sublist
-                    ],
-                )
-            )
+    #     """
+    #     time_steps = list(input_data.keys())
+    #     list_risks = []
+    #     for index, risk in enumerate(input_data.values()):
+    #         list_risks.append(
+    #             Risk(
+    #                 time_step=int(time_steps[index]),
+    #                 start_time_step=[int(key) for key in risk.keys()],
+    #                 scenarios=[
+    #                     int(scenario)
+    #                     for sublist in risk.values()
+    #                     for scenario in sublist
+    #                 ],
+    #             )
+    #         )
 
-        return list_risks
+    #     return list_risks
 
     def _get_interventions(
         self, input_data: dict, resources: list[Resource]
@@ -131,7 +131,8 @@ class InputProblemLoader:
                     tmax=intervention["tmax"],
                     delta=intervention["Delta"],
                     resource_workload=intervention["workload"],
-                    risk=self._get_risk(intervention["risk"]),
+                    # risk=self._get_risk(intervention["risk"]),
+                    risk=intervention["risk"],
                 ),
             )
 

@@ -12,7 +12,7 @@ class DifferentialEvolution:
         pop_size=20,
         mutation_factor=0.8,
         crossover_prob=0.7,
-        time_limit=5,  # seconds
+        time_limit=60,  # seconds
         tol=1e-6,
     ):
         self.optimization = optimization
@@ -30,18 +30,22 @@ class DifferentialEvolution:
             self.bounds[:, 0], self.bounds[:, 1], (self.pop_size, self.bounds.shape[0])
         ).astype(int)
 
-        fitness = np.array([self.obj_func(ind) for ind in pop])
+        fitness = np.array([self.obj_func(ind)[0] for ind in pop])
+
+        print("Initial pop: ", pop)
+        print("Initial fitness: ", fitness)
 
         start_time = time.time()
 
         while True:
             elapsed_time = time.time() - start_time
-            # print(f"Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
+            print(f"Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
             if elapsed_time > self.time_limit:
                 print(f"Maximum execution time reached: {elapsed_time:.2f} seconds.")
                 break
 
             new_pop = np.zeros_like(pop)
+            new_fitness = np.zeros_like(fitness)
             for j in range(self.pop_size):
                 idx = np.random.choice(self.pop_size, 3, replace=False)
                 a, b, c = pop[idx]
@@ -75,37 +79,45 @@ class DifferentialEvolution:
                 # breakpoint()
 
                 # Evaluate restrictions
-                constraints_satisfied, _ = self.optimization._constraints_satisfied(
-                    trial.tolist()
+                constraints_satisfied, penalty = (
+                    self.optimization._constraints_satisfied(trial.tolist())
                 )
-                if constraints_satisfied:
-                    print("Constraints satisfied.")
-                    print("Trial: ", trial)
-                    new_pop[j] = pop[j]
-                    continue
+
+                # if not constraints_satisfied:
+                # print("Constraints not satisfied for trial: ", trial)
 
                 # Evaluate solution
-                trial_fitness = self.obj_func(trial)
+                trial_fitness = self.obj_func(trial, penalty)[0]
 
-                if trial_fitness < fitness[j]:
+                if trial_fitness < fitness[j] and constraints_satisfied:
                     new_pop[j] = trial
-                    fitness[j] = trial_fitness
+                    new_fitness[j] = trial_fitness
                 else:
                     new_pop[j] = pop[j]
+                    new_fitness[j] = fitness[j]
 
             # Convergence
             if np.all(np.abs(fitness - fitness.mean()) < self.tol):
+                # print("Fitness: ", fitness)
+                # print("Fitness mean: ", fitness.mean())
                 break
 
             # print("New pop: ", new_pop)
             # print("Pop: ", pop)
 
             pop = new_pop
+            fitness = new_fitness
 
         print("\n\nPop: ", pop)
         print("Fitness: ", fitness)
         best_idx = fitness.argmin()
         best_individual = pop[best_idx]
+
+        eval = self.obj_func(best_individual)
+
+        print("Objective: ", eval[0])
+        print("Mean risk: ", eval[1])
+        print("Expected excess: ", eval[2])
 
         return self._format_solution(best_individual), fitness[best_idx]
 
