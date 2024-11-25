@@ -63,14 +63,26 @@ class InputProblemLoader:
         resource_names = list(resources_data.keys())
         resources = np.array([])
 
-        resources = np.append(
-            resources,
-            Resource(
-                name=resource_names[0],
-                max=resources_data[resource_names[0]]["max"],
-                min=resources_data[resource_names[0]]["min"],
-            ),
-        )
+        for index, resource in enumerate(resources_data.values()):
+            resources = np.append(
+                resources,
+                Resource(
+                    name=resource_names[index],
+                    max=resource["max"],
+                    min=resource["min"],
+                ),
+            )
+
+        # resources = np.append(
+        #     resources,
+        #     Resource(
+        #         name=resource_names[0],
+        #         max=resources_data[resource_names[0]]["max"],
+        #         min=resources_data[resource_names[0]]["min"],
+        #     ),
+        # )
+
+        print(resources)
 
         return resources
 
@@ -145,12 +157,16 @@ class InputProblemLoader:
             raise ValueError(f"Season {season} not found in the input data")
 
     def _get_season(self, input_data: dict, seasons: dict) -> Season:
+        # print(input_data)
+        # print(seasons)
+        # breakpoint()
         season_name = input_data[-1]
         season = Season(
             name=season_name,
             duration=self._get_season_duration(season_name, seasons),
         )
         # print(season)
+        # breakpoint()
         return season
 
     def _get_exclusions(
@@ -172,18 +188,38 @@ class InputProblemLoader:
         exclusions_names = list(exclusions_data.keys())
         exclusions = np.array([])
 
-        exclusions = np.append(
-            exclusions,
-            Exclusion(
-                name=exclusions_names[0],
-                interventions=[
-                    intervention.name
-                    for intervention in interventions
-                    if intervention.name in exclusions_data[exclusions_names[0]]
-                ],
-                season=self._get_season(exclusions_data[exclusions_names[0]], seasons),
-            ),
-        )
+        # print(exclusions_data)
+        # print(seasons)
+
+        for index, exclusion in enumerate(exclusions_data.values()):
+
+            exclusions = np.append(
+                exclusions,
+                Exclusion(
+                    name=exclusions_names[index],
+                    interventions=[
+                        intervention.name
+                        for intervention in interventions
+                        if intervention.name in exclusion
+                    ],
+                    season=self._get_season(exclusion, seasons),
+                ),
+            )
+
+            # exclusions = np.append(
+            #     exclusions,
+            #     Exclusion(
+            #         name=exclusion,
+            #         interventions=[
+            #             intervention.name
+            #             for intervention in interventions
+            #             if intervention.name in exclusions_data[exclusions_names[0]]
+            #         ],
+            #         season=self._get_season(
+            #             exclusions_data[exclusions_names[0]], seasons
+            #         ),
+            #     ),
+            # )
 
         return exclusions
 

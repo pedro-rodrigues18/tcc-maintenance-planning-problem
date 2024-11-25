@@ -12,7 +12,7 @@ class DifferentialEvolution:
         pop_size=20,
         mutation_factor=0.8,
         crossover_prob=0.7,
-        time_limit=60,  # seconds
+        time_limit=60 * 5,  # seconds
         tol=1e-6,
     ):
         self.optimization = optimization
@@ -26,14 +26,17 @@ class DifferentialEvolution:
         self.tol = tol
 
     def optimize(self):
-        pop = np.random.uniform(
-            self.bounds[:, 0], self.bounds[:, 1], (self.pop_size, self.bounds.shape[0])
-        ).astype(int)
+        pop = np.random.randint(
+            self.bounds[:, 0],
+            self.bounds[:, 1] + 1,
+            (self.pop_size, self.bounds.shape[0]),
+        )
 
         fitness = np.array([self.obj_func(ind)[0] for ind in pop])
 
-        print("Initial pop: ", pop)
-        print("Initial fitness: ", fitness)
+        # print("Initial pop: ", pop)
+        # print("Initial fitness: ", fitness)
+        # breakpoint()
 
         start_time = time.time()
 
@@ -61,7 +64,22 @@ class DifferentialEvolution:
                     self.bounds[:, 1],
                 ).astype(int)
 
+                # for idx, intervntion in enumerate(self.problem.interventions):
+                #     if mutant[idx] < 1:
+                #         mutant[idx] = 1
+                #     elif mutant[idx] > intervntion.tmax:
+                #         mutant[idx] = intervntion.tmax
+
+                # print("bounds: ", self.bounds)
+
+                # mutant = np.minimum(mutant, self.bounds[:, 0])
+
+                # mutant = np.maximum(mutant, )
+
                 # print("Mutant: ", mutant)
+
+                # breakpoint()
+
                 # print("Mutant shape: ", mutant.shape)
 
                 # breakpoint()
@@ -78,18 +96,35 @@ class DifferentialEvolution:
 
                 # breakpoint()
 
+                _, pop_penalty = self.optimization._constraints_satisfied(pop[j])
+
                 # Evaluate restrictions
-                constraints_satisfied, penalty = (
-                    self.optimization._constraints_satisfied(trial.tolist())
+                _, trial_penalty = self.optimization._constraints_satisfied(
+                    trial.tolist()
                 )
+
+                # print(">>", pop_penalty)
+                # print(">>>", trial_penalty)
 
                 # if not constraints_satisfied:
                 # print("Constraints not satisfied for trial: ", trial)
 
-                # Evaluate solution
-                trial_fitness = self.obj_func(trial, penalty)[0]
+                # se violou menos e melhor
+                # se empate olhar objetivo
 
-                if trial_fitness < fitness[j] and constraints_satisfied:
+                # Evaluate solution
+                trial_fitness = self.obj_func(trial, trial_penalty)[0]
+
+                diferenca_penalidade = abs(trial_penalty - pop_penalty)
+
+                if diferenca_penalidade < 1e-6:
+                    if trial_fitness < fitness[j]:
+                        new_pop[j] = trial
+                        new_fitness[j] = trial_fitness
+                    else:
+                        new_pop[j] = pop[j]
+                        new_fitness[j] = fitness[j]
+                elif trial_penalty < pop_penalty:
                     new_pop[j] = trial
                     new_fitness[j] = trial_fitness
                 else:

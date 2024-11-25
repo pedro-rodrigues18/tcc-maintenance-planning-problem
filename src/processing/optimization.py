@@ -113,7 +113,7 @@ class Optimization:
 
         return False, penalty
 
-    def _resources_constraint(self, start_times) -> bool:
+    def _resources_constraint(self, start_times) -> tuple[bool, float]:
         """
         Check if the resource usage by all interventions respects the limits for each period.
 
@@ -159,19 +159,18 @@ class Optimization:
 
                 # Verifica se o uso de recursos está dentro dos limites de mínimo e máximo
                 # print("Resource: ", resource)
-                if (
-                    total_resource_usage < resource.min[t - 1] - eps
-                    or total_resource_usage > resource.max[t - 1] + eps
-                ):
-                    # print("Resource min: ", resource.min)
-                    # print(f"Resource usage: {total_resource_usage} in time step {t}")
-                    # print("Resource max: ", resource.max)
-                    penalty += abs(total_resource_usage - resource.max[t - 1])
-                    return True, penalty
+                if total_resource_usage < resource.min[t - 1] - eps:
+                    penalty += resource.min[t - 1] - total_resource_usage
+
+                elif total_resource_usage > resource.max[t - 1] + eps:
+                    penalty += total_resource_usage - resource.max[t - 1]
+
+        if penalty > 0:
+            return True, penalty
 
         return False, penalty
 
-    def _exclusion_constraint(self, start_times) -> bool:
+    def _exclusion_constraint(self, start_times) -> tuple[bool, float]:
         """
         Check if mutually exclusive interventions are not occurring at the same time.
 
@@ -206,26 +205,20 @@ class Optimization:
             # breakpoint()
 
             start1 = start_times[i1]
-            end1 = start1 + self.problem.interventions[i1].delta[i1] - 1
+            end1 = start1 + self.problem.interventions[i1].delta[start1 - 1] - 1
 
             start2 = start_times[i2]
-            end2 = start2 + self.problem.interventions[i2].delta[i2] - 1
+            end2 = start2 + self.problem.interventions[i2].delta[start2 - 1] - 1
 
-            if start1 <= end2 and start2 <= end1:
-                t_start = max(start1, start2)
-                t_end = min(end1, end2)
+            t_start = max(start1, start2)
+            t_end = min(end1, end2)
+
+            if t_start <= t_end:
                 for t in range(t_start, t_end + 1):
                     if t in season.duration:
                         penalty += 1
-                # print("Start1: ", start1)
-                # print("Duration1: ", self.problem.interventions[i1].delta[i1])
-                # print("End1: ", end1)
-                # print("Start2: ", start2)
-                # print("Duration2: ", self.problem.interventions[i2].delta[i2])
-                # print("End2: ", end2)
-                return True, penalty
 
-        return False, penalty
+        return penalty > 0, penalty
 
     def _constraints_satisfied(self, start_times) -> bool:
 
@@ -238,19 +231,36 @@ class Optimization:
         exclusion_constraint = self._exclusion_constraint(start_times)
 
         if intervention_constraint[0]:
-            # print("Intervention constraint violated.")
-            # print("Penalty: ", intervention_constraint[1])
+            print("Intervention constraint violated.")
             penalty += intervention_constraint[1] * 1e6
+            print("Penalty: ", penalty)
         if resources_constraint[0]:
-            # print("Resources constraint violated.")
-            # print("Penalty: ", resources_constraint[1])
+            print("Resources constraint violated.")
             penalty += resources_constraint[1] * 1e6
+            print("Penalty: ", penalty)
         if exclusion_constraint[0]:
-            # print("Exclusion constraint violated.")
-            # print("Penalty: ", exclusion_constraint[1])
+            print("Exclusion constraint violated.")
             penalty += exclusion_constraint[1] * 1e6
+            print("Penalty: ", penalty)
 
-        # print(">>>>>>>>>>")
+        print("Penalty Intervention: ", intervention_constraint[1])
+
+        print("Penalty Resources: ", resources_constraint[1])
+
+        print("Penalty Exclusion: ", exclusion_constraint[1])
+
+        print(
+            "Constraint satisfaied: ",
+            not (
+                intervention_constraint[0]
+                or resources_constraint[0]
+                or exclusion_constraint[0]
+            ),
+        )
+
+        print("\n")
+
+        # breakpoint()
 
         return (
             not (

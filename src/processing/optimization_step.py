@@ -44,8 +44,10 @@ class OptimizationStep:
         Create the bounds for the optimization problem.
         """
         bounds = np.array(
-            [[1, self.problem.time_horizon.time_steps]]
-            * len(self.problem.interventions)
+            [
+                [1, self.problem.interventions[i].tmax]
+                for i in range(len(self.problem.interventions))
+            ]
         )
 
         return bounds
