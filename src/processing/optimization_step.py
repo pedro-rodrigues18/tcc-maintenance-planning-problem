@@ -11,7 +11,7 @@ class OptimizationStep:
     def __call__(self):
         return self._optimization_step()
 
-    def _optimization_step(self):
+    def _optimization_step(self) -> dict[str, np.ndarray]:
         """
         Optimize the problem using the Differential Evolution algorithm.
 
@@ -23,11 +23,13 @@ class OptimizationStep:
 
         bounds = self._create_bounds()
 
+        # Call Gurobi to find a set of feasible solutions and pass them to the DE algorithm
+
         de = DifferentialEvolution(
             optimization=optimization,
             obj_func=optimization._build_objective_function,
             bounds=bounds,
-            problem=self.problem,
+            # problem=self.problem,
         )
 
         solution, fitness = de.optimize()
@@ -39,7 +41,7 @@ class OptimizationStep:
 
         return optimization_info
 
-    def _create_bounds(self):
+    def _create_bounds(self) -> np.ndarray:
         """
         Create the bounds for the optimization problem.
         """

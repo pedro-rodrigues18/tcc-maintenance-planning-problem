@@ -82,7 +82,7 @@ class InputProblemLoader:
         #     ),
         # )
 
-        print(resources)
+        # print(resources)
 
         return resources
 

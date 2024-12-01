@@ -45,28 +45,20 @@ class Optimization:
 
                         risk_t += risk_value
                         # Acumula o risco para cada cenário no tempo t
-                        # print("Len risk by scenario: ", len(risk_by_scenario))
-                        # print("S: ", s)
                         if len(risk_by_scenario) <= s:
                             risk_by_scenario.append(risk_value)
                         else:
                             risk_by_scenario[s] += risk_value
-                            # print("Risk by scenario: ", risk_by_scenario)
 
             # Calcular média de risco para o tempo t
             risk_t /= max(1, self.problem.scenarios[t - 1])  # Evitar divisão por zero
             mean_risk += risk_t
 
             # Ordena para calcular o excesso usando o quantil
-            # print(f"Risk by scenario: ", risk_by_scenario)
             risk_by_scenario_sorted = sorted(risk_by_scenario)
-            # print("Risk by scenario sorted: ", risk_by_scenario_sorted)
             quantile_index = int(math.ceil(quantile * len(risk_by_scenario_sorted))) - 1
-            # print("Quantile index: ", quantile_index)
             excess_t = 0.0
             if risk_by_scenario_sorted:
-                # print("Risk by scenario sorted: ", risk_by_scenario_sorted)
-                # print("Quantile index: ", quantile_index)
                 excess_t = max(0.0, risk_by_scenario_sorted[quantile_index] - risk_t)
 
             expected_excess += excess_t
@@ -74,8 +66,6 @@ class Optimization:
         mean_risk /= T
         expected_excess /= T
         objective = (alpha * mean_risk) + ((1.0 - alpha) * expected_excess)
-
-        # breakpoint()
 
         return objective + penalty, mean_risk, expected_excess
 
@@ -94,8 +84,6 @@ class Optimization:
             start_time = start_times[i]
 
             if start_time < 0 or start_time > intervention.tmax:
-                # print("Start time: ", start_time)
-                # print("Tmax: ", intervention.tmax)
                 penalty += start_time - intervention.tmax
                 return True, penalty
 
@@ -103,9 +91,6 @@ class Optimization:
                 start_time + intervention.delta[start_time - 1] - 1
                 > self.problem.time_horizon.time_steps
             ):
-                # print("Start time: ", start_time)
-                # print("Delta: ", intervention.delta[i])
-                # print("Time horizon: ", self.problem.time_horizon.time_steps)
                 penalty = (
                     start_time + intervention.delta[start_time - 1] - 1
                 ) - self.problem.time_horizon.time_steps
@@ -126,29 +111,16 @@ class Optimization:
         eps = 1e-6
         penalty = 0
         for t in range(1, self.problem.time_horizon.time_steps + 1):
-            # print("Time step: ", t)
-            # breakpoint()
             for resource in self.problem.resources:
                 total_resource_usage = 0
                 for i, intervention in enumerate(self.problem.interventions):
                     start_time = start_times[i]
-                    # print("start_times: ", start_time)
-                    # print("i: ", i)
-                    # print("delta: ", intervention.delta[start_time - 1])
                     if (
                         start_time
                         <= t
                         <= start_time + intervention.delta[start_time - 1] - 1
                     ):
-                        # print("t: ", t)
-                        # print("Resource workload: ", intervention.resource_workload)
-                        # print("Resource name: ", resource.name)
-                        # print(
-                        #     "TESTE: ",
-                        #     intervention.resource_workload[resource.name][str(t)],
-                        # )
                         try:
-                            # print(">>> TESTE 1")
                             if intervention.resource_workload[resource.name][str(t)]:
                                 total_resource_usage += intervention.resource_workload[
                                     resource.name
@@ -158,7 +130,6 @@ class Optimization:
                             pass
 
                 # Verifica se o uso de recursos está dentro dos limites de mínimo e máximo
-                # print("Resource: ", resource)
                 if total_resource_usage < resource.min[t - 1] - eps:
                     penalty += resource.min[t - 1] - total_resource_usage
 
@@ -182,27 +153,19 @@ class Optimization:
         """
         penalty = 0
         for exclusion in self.problem.exclusions:
-            # print(">> ", self.problem.exclusions)
-            # breakpoint()
+
             i1, i2, season = (
                 exclusion.interventions[0],
                 exclusion.interventions[1],
                 exclusion.season,
             )
-            # print("i1: ", i1)
-            # print("i2: ", i2)
-            # print("season: ", season)
+
             for i, intervention in enumerate(self.problem.interventions):
-                # print("i: ", i)
                 # indice 0 representa intervenção 1
                 if intervention.name == i1:
                     i1 = i
                 if intervention.name == i2:
                     i2 = i
-
-            # print("i1: ", i1)
-            # print("i2: ", i2)
-            # breakpoint()
 
             start1 = start_times[i1]
             end1 = start1 + self.problem.interventions[i1].delta[start1 - 1] - 1
@@ -224,24 +187,22 @@ class Optimization:
 
         penalty = 0.0
 
-        # print(">>>>> Start times: ", start_times)
-
         intervention_constraint = self._intervention_constraint(start_times)
         resources_constraint = self._resources_constraint(start_times)
         exclusion_constraint = self._exclusion_constraint(start_times)
 
         if intervention_constraint[0]:
-            print("Intervention constraint violated.")
+            # print("Intervention constraint violated.")
             penalty += intervention_constraint[1] * 1e6
-            print("Penalty: ", penalty)
+            # print("Penalty: ", penalty)
         if resources_constraint[0]:
-            print("Resources constraint violated.")
+            # print("Resources constraint violated.")
             penalty += resources_constraint[1] * 1e6
-            print("Penalty: ", penalty)
+            # print("Penalty: ", penalty)
         if exclusion_constraint[0]:
-            print("Exclusion constraint violated.")
+            # print("Exclusion constraint violated.")
             penalty += exclusion_constraint[1] * 1e6
-            print("Penalty: ", penalty)
+            # print("Penalty: ", penalty)
 
         print("Penalty Intervention: ", intervention_constraint[1])
 

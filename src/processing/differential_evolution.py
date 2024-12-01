@@ -1,24 +1,24 @@
 import time
 import numpy as np
 
+from processing.optimization import Optimization
+
 
 class DifferentialEvolution:
     def __init__(
         self,
-        optimization,
-        obj_func,
-        bounds,
-        problem,
-        pop_size=20,
-        mutation_factor=0.8,
-        crossover_prob=0.7,
-        time_limit=60 * 5,  # seconds
-        tol=1e-6,
-    ):
+        optimization: Optimization,
+        obj_func: callable,
+        bounds: np.ndarray,
+        pop_size: int = 25,
+        mutation_factor: float = 0.8,
+        crossover_prob: float = 0.7,
+        time_limit: int = 60 * 15,  # seconds
+        tol: int = 1e-6,
+    ) -> None:
         self.optimization = optimization
         self.obj_func = obj_func
         self.bounds = bounds
-        self.problem = problem
         self.pop_size = pop_size
         self.mutation_factor = mutation_factor
         self.crossover_prob = crossover_prob
@@ -64,37 +64,12 @@ class DifferentialEvolution:
                     self.bounds[:, 1],
                 ).astype(int)
 
-                # for idx, intervntion in enumerate(self.problem.interventions):
-                #     if mutant[idx] < 1:
-                #         mutant[idx] = 1
-                #     elif mutant[idx] > intervntion.tmax:
-                #         mutant[idx] = intervntion.tmax
-
-                # print("bounds: ", self.bounds)
-
-                # mutant = np.minimum(mutant, self.bounds[:, 0])
-
-                # mutant = np.maximum(mutant, )
-
-                # print("Mutant: ", mutant)
-
-                # breakpoint()
-
-                # print("Mutant shape: ", mutant.shape)
-
-                # breakpoint()
-
                 # Crossover
                 cross_points = (
                     np.random.rand(self.bounds.shape[0]) < self.crossover_prob
                 )
                 cross_points[np.random.randint(0, self.bounds.shape[0])] = True
                 trial = np.where(cross_points, mutant, pop[j])
-
-                # print("Trial: ", trial)
-                # print("Trial shape: ", trial.shape)
-
-                # breakpoint()
 
                 _, pop_penalty = self.optimization._constraints_satisfied(pop[j])
 
@@ -103,21 +78,12 @@ class DifferentialEvolution:
                     trial.tolist()
                 )
 
-                # print(">>", pop_penalty)
-                # print(">>>", trial_penalty)
-
-                # if not constraints_satisfied:
-                # print("Constraints not satisfied for trial: ", trial)
-
-                # se violou menos e melhor
-                # se empate olhar objetivo
-
                 # Evaluate solution
                 trial_fitness = self.obj_func(trial, trial_penalty)[0]
 
-                diferenca_penalidade = abs(trial_penalty - pop_penalty)
+                diff_penalty = abs(trial_penalty - pop_penalty)
 
-                if diferenca_penalidade < 1e-6:
+                if diff_penalty < 1e-6:
                     if trial_fitness < fitness[j]:
                         new_pop[j] = trial
                         new_fitness[j] = trial_fitness
@@ -133,12 +99,7 @@ class DifferentialEvolution:
 
             # Convergence
             if np.all(np.abs(fitness - fitness.mean()) < self.tol):
-                # print("Fitness: ", fitness)
-                # print("Fitness mean: ", fitness.mean())
                 break
-
-            # print("New pop: ", new_pop)
-            # print("Pop: ", pop)
 
             pop = new_pop
             fitness = new_fitness
@@ -159,6 +120,6 @@ class DifferentialEvolution:
     def _format_solution(self, best_individual):
         solution = []
         for i, start_time in enumerate(best_individual):
-            intervention_name = self.problem.interventions[i].name
+            intervention_name = self.optimization.problem.interventions[i].name
             solution.append(f"{intervention_name} {start_time}")
         return "\n".join(solution)

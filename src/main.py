@@ -5,21 +5,20 @@ from preprocessing.input_problem_loader import InputProblemLoader
 from processing.optimization_step import OptimizationStep
 
 
-def main():
+def main() -> None:
     """
     Student: Pedro Henrique Rodrigues Pereira
     Professor: Dr. André Luiz Maravilha da Silva
     """
-    # ------------- Load the Problem Here ----------------
+    # ------------- Load the Problem ----------------
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_name = "A_01"
+    file_name = "E_02"
     input_path = os.path.join(current_dir, f"../input/{file_name}.json")
     problem_loader = InputProblemLoader(input_path)
 
     problem = problem_loader()
 
-    # ------------- Make the Optimization Here ----------------
-
+    # ------------- Make the Optimization ----------------
     print("\nOptimizing the problem...")
 
     optimization_step = OptimizationStep(problem)
