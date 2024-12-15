@@ -204,22 +204,22 @@ class Optimization:
             penalty += exclusion_constraint[1] * 1e6
             # print("Penalty: ", penalty)
 
-        print("Penalty Intervention: ", intervention_constraint[1])
+        # print("Penalty Intervention: ", intervention_constraint[1])
 
-        print("Penalty Resources: ", resources_constraint[1])
+        # print("Penalty Resources: ", resources_constraint[1])
 
-        print("Penalty Exclusion: ", exclusion_constraint[1])
+        # print("Penalty Exclusion: ", exclusion_constraint[1])
 
-        print(
-            "Constraint satisfaied: ",
-            not (
-                intervention_constraint[0]
-                or resources_constraint[0]
-                or exclusion_constraint[0]
-            ),
-        )
+        # print(
+        #     "Constraint satisfaied: ",
+        #     not (
+        #         intervention_constraint[0]
+        #         or resources_constraint[0]
+        #         or exclusion_constraint[0]
+        #     ),
+        # )
 
-        print("\n")
+        # print("\n")
 
         # breakpoint()
 

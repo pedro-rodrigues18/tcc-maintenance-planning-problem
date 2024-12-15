@@ -8,15 +8,19 @@ class DifferentialEvolution:
     def __init__(
         self,
         optimization: Optimization,
+        pop: np.ndarray,
+        fitness: np.ndarray,
         obj_func: callable,
         bounds: np.ndarray,
-        pop_size: int = 25,
+        pop_size: int,
         mutation_factor: float = 0.8,
         crossover_prob: float = 0.7,
-        time_limit: int = 60 * 15,  # seconds
+        time_limit: int = 60 * 5,  # seconds
         tol: int = 1e-6,
     ) -> None:
         self.optimization = optimization
+        self.pop = pop
+        self.fitness = fitness
         self.obj_func = obj_func
         self.bounds = bounds
         self.pop_size = pop_size
@@ -25,19 +29,27 @@ class DifferentialEvolution:
         self.time_limit = time_limit
         self.tol = tol
 
+    def exponential_crossover(self, x, v, rho=0.5):
+        n = len(x)
+        k1 = np.random.randint(0, n)  # Posição inicial aleatória
+        d = np.random.geometric(
+            p=1 - rho
+        )  # Comprimento baseado em distribuição exponencial
+        k2 = k1 + d
+
+        # Vetor indicador
+        r = np.zeros(n, dtype=int)
+        for j in range(n):
+            if k2 <= n and k1 <= j < k2:
+                r[j] = 1
+            elif k2 > n and (j < k2 % n or j >= k1):
+                r[j] = 1
+
+        # Recombinação
+        x_recomb = np.where(r == 1, v, x)
+        return x_recomb
+
     def optimize(self):
-        pop = np.random.randint(
-            self.bounds[:, 0],
-            self.bounds[:, 1] + 1,
-            (self.pop_size, self.bounds.shape[0]),
-        )
-
-        fitness = np.array([self.obj_func(ind)[0] for ind in pop])
-
-        # print("Initial pop: ", pop)
-        # print("Initial fitness: ", fitness)
-        # breakpoint()
-
         start_time = time.time()
 
         while True:
@@ -47,15 +59,11 @@ class DifferentialEvolution:
                 print(f"Maximum execution time reached: {elapsed_time:.2f} seconds.")
                 break
 
-            new_pop = np.zeros_like(pop)
-            new_fitness = np.zeros_like(fitness)
+            new_pop = np.zeros_like(self.pop)
+            new_fitness = np.zeros_like(self.fitness)
             for j in range(self.pop_size):
                 idx = np.random.choice(self.pop_size, 3, replace=False)
-                a, b, c = pop[idx]
-
-                # print("Individual a: ", a)
-                # print("Individual b: ", b)
-                # print("Individual c: ", c)
+                a, b, c = self.pop[idx]
 
                 # Mutation
                 mutant = np.clip(
@@ -65,13 +73,15 @@ class DifferentialEvolution:
                 ).astype(int)
 
                 # Crossover
-                cross_points = (
-                    np.random.rand(self.bounds.shape[0]) < self.crossover_prob
-                )
-                cross_points[np.random.randint(0, self.bounds.shape[0])] = True
-                trial = np.where(cross_points, mutant, pop[j])
+                # cross_points = (
+                #     np.random.rand(self.bounds.shape[0]) < self.crossover_prob
+                # )
+                # cross_points[np.random.randint(0, self.bounds.shape[0])] = True
+                # trial = np.where(cross_points, mutant, self.pop[j])
 
-                _, pop_penalty = self.optimization._constraints_satisfied(pop[j])
+                trial = self.exponential_crossover(self.pop[j], mutant)
+
+                _, pop_penalty = self.optimization._constraints_satisfied(self.pop[j])
 
                 # Evaluate restrictions
                 _, trial_penalty = self.optimization._constraints_satisfied(
@@ -81,33 +91,35 @@ class DifferentialEvolution:
                 # Evaluate solution
                 trial_fitness = self.obj_func(trial, trial_penalty)[0]
 
+                print("Fitness trial: ", trial_fitness)
+
                 diff_penalty = abs(trial_penalty - pop_penalty)
 
                 if diff_penalty < 1e-6:
-                    if trial_fitness < fitness[j]:
+                    if trial_fitness < self.fitness[j]:
                         new_pop[j] = trial
                         new_fitness[j] = trial_fitness
                     else:
-                        new_pop[j] = pop[j]
-                        new_fitness[j] = fitness[j]
+                        new_pop[j] = self.pop[j]
+                        new_fitness[j] = self.fitness[j]
                 elif trial_penalty < pop_penalty:
                     new_pop[j] = trial
                     new_fitness[j] = trial_fitness
                 else:
-                    new_pop[j] = pop[j]
-                    new_fitness[j] = fitness[j]
+                    new_pop[j] = self.pop[j]
+                    new_fitness[j] = self.fitness[j]
 
             # Convergence
-            if np.all(np.abs(fitness - fitness.mean()) < self.tol):
+            if np.all(np.abs(self.fitness - self.fitness.mean()) < self.tol):
                 break
 
-            pop = new_pop
-            fitness = new_fitness
+            self.pop = new_pop
+            self.fitness = new_fitness
 
-        print("\n\nPop: ", pop)
-        print("Fitness: ", fitness)
-        best_idx = fitness.argmin()
-        best_individual = pop[best_idx]
+        print("\n\nPop: ", self.pop)
+        print("fitness: ", self.fitness)
+        best_idx = self.fitness.argmin()
+        best_individual = self.pop[best_idx]
 
         eval = self.obj_func(best_individual)
 
@@ -115,7 +127,7 @@ class DifferentialEvolution:
         print("Mean risk: ", eval[1])
         print("Expected excess: ", eval[2])
 
-        return self._format_solution(best_individual), fitness[best_idx]
+        return self._format_solution(best_individual), self.fitness[best_idx]
 
     def _format_solution(self, best_individual):
         solution = []
