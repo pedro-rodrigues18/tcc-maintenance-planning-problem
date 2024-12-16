@@ -32,13 +32,11 @@ class DifferentialEvolution:
 
     def exponential_crossover(self, x, v, rho=0.5):
         n = len(x)
-        k1 = np.random.randint(0, n)  # Posição inicial aleatória
-        d = np.random.geometric(
-            p=1 - rho
-        )  # Comprimento baseado em distribuição exponencial
+        k1 = np.random.randint(0, n)  # Random initial position
+        d = np.random.geometric(p=1 - rho)  # Length based on exponential distribution
         k2 = k1 + d
 
-        # Vetor indicador
+        # Indicator vector
         r = np.zeros(n, dtype=int)
         for j in range(n):
             if k2 <= n and k1 <= j < k2:
@@ -46,7 +44,7 @@ class DifferentialEvolution:
             elif k2 > n and (j < k2 % n or j >= k1):
                 r[j] = 1
 
-        # Recombinação
+        # Recombination
         x_recomb = np.where(r == 1, v, x)
         return x_recomb
 
@@ -111,8 +109,6 @@ class DifferentialEvolution:
             self.pop = new_pop
             self.fitness = new_fitness
 
-        # print("\n\nPop: ", self.pop)
-        # print("fitness: ", self.fitness)
         best_idx = self.fitness.argmin()
         best_individual = self.pop[best_idx]
 

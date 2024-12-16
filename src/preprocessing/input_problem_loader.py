@@ -73,46 +73,7 @@ class InputProblemLoader:
                 ),
             )
 
-        # resources = np.append(
-        #     resources,
-        #     Resource(
-        #         name=resource_names[0],
-        #         max=resources_data[resource_names[0]]["max"],
-        #         min=resources_data[resource_names[0]]["min"],
-        #     ),
-        # )
-
-        # print(resources)
-
         return resources
-
-    # def _get_risk(self, input_data: dict) -> list[int]:
-    #     """
-    #     Get the list of risks from the input data.
-
-    #     Args:
-    #         input_data (dict): A dictionary containing the input data.
-
-    #     Returns:
-    #         list[Risk]: A list of Risk objects representing the risks.
-
-    #     """
-    #     time_steps = list(input_data.keys())
-    #     list_risks = []
-    #     for index, risk in enumerate(input_data.values()):
-    #         list_risks.append(
-    #             Risk(
-    #                 time_step=int(time_steps[index]),
-    #                 start_time_step=[int(key) for key in risk.keys()],
-    #                 scenarios=[
-    #                     int(scenario)
-    #                     for sublist in risk.values()
-    #                     for scenario in sublist
-    #                 ],
-    #             )
-    #         )
-
-    #     return list_risks
 
     def _get_interventions(
         self, input_data: dict, resources: list[Resource]
@@ -133,9 +94,6 @@ class InputProblemLoader:
         interventions = np.array([])
 
         for index, intervention in enumerate(interventions_data.values()):
-            # print(resources)
-            # print(intervention["workload"])
-            # breakpoint()
             interventions = np.append(
                 interventions,
                 Intervention(
@@ -143,7 +101,6 @@ class InputProblemLoader:
                     tmax=intervention["tmax"],
                     delta=intervention["Delta"],
                     resource_workload=intervention["workload"],
-                    # risk=self._get_risk(intervention["risk"]),
                     risk=intervention["risk"],
                 ),
             )
@@ -157,16 +114,11 @@ class InputProblemLoader:
             raise ValueError(f"Season {season} not found in the input data")
 
     def _get_season(self, input_data: dict, seasons: dict) -> Season:
-        # print(input_data)
-        # print(seasons)
-        # breakpoint()
         season_name = input_data[-1]
         season = Season(
             name=season_name,
             duration=self._get_season_duration(season_name, seasons),
         )
-        # print(season)
-        # breakpoint()
         return season
 
     def _get_exclusions(
@@ -188,9 +140,6 @@ class InputProblemLoader:
         exclusions_names = list(exclusions_data.keys())
         exclusions = np.array([])
 
-        # print(exclusions_data)
-        # print(seasons)
-
         for index, exclusion in enumerate(exclusions_data.values()):
 
             exclusions = np.append(
@@ -205,21 +154,6 @@ class InputProblemLoader:
                     season=self._get_season(exclusion, seasons),
                 ),
             )
-
-            # exclusions = np.append(
-            #     exclusions,
-            #     Exclusion(
-            #         name=exclusion,
-            #         interventions=[
-            #             intervention.name
-            #             for intervention in interventions
-            #             if intervention.name in exclusions_data[exclusions_names[0]]
-            #         ],
-            #         season=self._get_season(
-            #             exclusions_data[exclusions_names[0]], seasons
-            #         ),
-            #     ),
-            # )
 
         return exclusions
 

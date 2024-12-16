@@ -47,7 +47,7 @@ class GeneticAlgorithm:
 
                 child = self.reproduce(a, b)
 
-                # Mutação
+                # Mutation
                 if np.random.rand() < self.mutation_rate:
                     mutation_idx = np.random.randint(0, len(child))
                     child[mutation_idx] = np.random.randint(

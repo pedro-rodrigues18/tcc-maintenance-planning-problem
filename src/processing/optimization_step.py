@@ -59,12 +59,6 @@ class OptimizationStep:
         pop = np.concatenate((pop[:middle], new_population[:middle]), axis=0)
         fitness = np.concatenate((fitness[:middle], new_fitness[:middle]), axis=0)
 
-        # print(">> Fitness: ", fitness)
-
-        # print(">> Pop: ", pop)
-
-        # breakpoint()
-
         de = DifferentialEvolution(
             optimization=optimization,
             obj_func=optimization._build_objective_function,

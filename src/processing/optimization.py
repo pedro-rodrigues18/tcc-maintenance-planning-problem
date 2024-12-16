@@ -43,17 +43,17 @@ class Optimization:
                             risk_value = 0.0
 
                         risk_t += risk_value
-                        # Acumula o risco para cada cenário no tempo t
+                        # Acumulate the risk for each scenario at time t
                         if len(risk_by_scenario) <= s:
                             risk_by_scenario.append(risk_value)
                         else:
                             risk_by_scenario[s] += risk_value
 
-            # Calcular média de risco para o tempo t
-            risk_t /= max(1, self.problem.scenarios[t - 1])  # Evitar divisão por zero
+            # Calculate the average risk for time t
+            risk_t /= max(1, self.problem.scenarios[t - 1])  # Avoid division by zero
             mean_risk += risk_t
 
-            # Ordena para calcular o excesso usando o quantil
+            # Sort to calculate the excess using the quantile
             risk_by_scenario_sorted = sorted(risk_by_scenario)
             quantile_index = int(math.ceil(quantile * len(risk_by_scenario_sorted))) - 1
             excess_t = 0.0
@@ -128,7 +128,7 @@ class Optimization:
                         except KeyError:
                             pass
 
-                # Verifica se o uso de recursos está dentro dos limites de mínimo e máximo
+                # Check if the resource usage is within the minimum and maximum limits
                 if total_resource_usage < resource.min[t - 1] - eps:
                     penalty += resource.min[t - 1] - total_resource_usage
 
@@ -160,7 +160,7 @@ class Optimization:
             )
 
             for i, intervention in enumerate(self.problem.interventions):
-                # indice 0 representa intervenção 1
+                # index 0 represents the intervention 1
                 if intervention.name == i1:
                     i1 = i
                 if intervention.name == i2:
