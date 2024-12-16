@@ -23,7 +23,7 @@ class OptimizationStep:
         optimization = Optimization(problem=self.problem)
 
         bounds = self._create_bounds()
-        pop_size = 100
+        pop_size = 50
 
         pop = np.random.randint(
             bounds[:, 0],
@@ -59,11 +59,11 @@ class OptimizationStep:
         pop = np.concatenate((pop[:middle], new_population[:middle]), axis=0)
         fitness = np.concatenate((fitness[:middle], new_fitness[:middle]), axis=0)
 
-        print(">> Fitness: ", fitness)
+        # print(">> Fitness: ", fitness)
 
-        print(">> Pop: ", pop)
+        # print(">> Pop: ", pop)
 
-        breakpoint()
+        # breakpoint()
 
         de = DifferentialEvolution(
             optimization=optimization,

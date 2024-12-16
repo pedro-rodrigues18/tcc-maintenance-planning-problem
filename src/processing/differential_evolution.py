@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import concurrent.futures
 
 from processing.optimization import Optimization
 
@@ -54,14 +55,17 @@ class DifferentialEvolution:
 
         while True:
             elapsed_time = time.time() - start_time
-            print(f"Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
+            print(f"DE - Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
             if elapsed_time > self.time_limit:
-                print(f"Maximum execution time reached: {elapsed_time:.2f} seconds.")
+                print(
+                    f"DE - Maximum execution time reached: {elapsed_time:.2f} seconds."
+                )
                 break
 
             new_pop = np.zeros_like(self.pop)
             new_fitness = np.zeros_like(self.fitness)
-            for j in range(self.pop_size):
+
+            def evaluate_individual(j):
                 idx = np.random.choice(self.pop_size, 3, replace=False)
                 a, b, c = self.pop[idx]
 
@@ -73,51 +77,42 @@ class DifferentialEvolution:
                 ).astype(int)
 
                 # Crossover
-                # cross_points = (
-                #     np.random.rand(self.bounds.shape[0]) < self.crossover_prob
-                # )
-                # cross_points[np.random.randint(0, self.bounds.shape[0])] = True
-                # trial = np.where(cross_points, mutant, self.pop[j])
-
                 trial = self.exponential_crossover(self.pop[j], mutant)
 
                 _, pop_penalty = self.optimization._constraints_satisfied(self.pop[j])
-
-                # Evaluate restrictions
                 _, trial_penalty = self.optimization._constraints_satisfied(
                     trial.tolist()
                 )
 
-                # Evaluate solution
                 trial_fitness = self.obj_func(trial, trial_penalty)[0]
-
-                print("Fitness trial: ", trial_fitness)
 
                 diff_penalty = abs(trial_penalty - pop_penalty)
 
                 if diff_penalty < 1e-6:
                     if trial_fitness < self.fitness[j]:
-                        new_pop[j] = trial
-                        new_fitness[j] = trial_fitness
+                        return trial, trial_fitness
                     else:
-                        new_pop[j] = self.pop[j]
-                        new_fitness[j] = self.fitness[j]
+                        return self.pop[j], self.fitness[j]
                 elif trial_penalty < pop_penalty:
-                    new_pop[j] = trial
-                    new_fitness[j] = trial_fitness
+                    return trial, trial_fitness
                 else:
-                    new_pop[j] = self.pop[j]
-                    new_fitness[j] = self.fitness[j]
+                    return self.pop[j], self.fitness[j]
 
-            # Convergence
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                results = list(executor.map(evaluate_individual, range(self.pop_size)))
+
+            for j, (new_individual, new_ind_fitness) in enumerate(results):
+                new_pop[j] = new_individual
+                new_fitness[j] = new_ind_fitness
+
             if np.all(np.abs(self.fitness - self.fitness.mean()) < self.tol):
                 break
 
             self.pop = new_pop
             self.fitness = new_fitness
 
-        print("\n\nPop: ", self.pop)
-        print("fitness: ", self.fitness)
+        # print("\n\nPop: ", self.pop)
+        # print("fitness: ", self.fitness)
         best_idx = self.fitness.argmin()
         best_individual = self.pop[best_idx]
 

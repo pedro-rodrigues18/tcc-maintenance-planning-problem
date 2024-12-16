@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import concurrent.futures
 
 
 class GeneticAlgorithm:
@@ -25,21 +26,28 @@ class GeneticAlgorithm:
 
     def optimize(self):
         start_time = time.time()
+
         while True:
             elapsed_time = time.time() - start_time
-            print(f"Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
+            print(f"GA - Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
             if elapsed_time > self.time_limit:
-                print(f"Maximum execution time reached: {elapsed_time:.2f} seconds.")
+                print(
+                    f"GA - Maximum execution time reached: {elapsed_time:.2f} seconds."
+                )
                 return self.pop, self.fitness
 
             new_pop = np.zeros_like(self.pop)
 
-            for i in range(self.pop_size):
+            def evaluate_individual(i):
+                """
+                Evaluate and generate a new individual.
+                """
                 idx = np.random.choice(self.pop_size, 2, replace=False)
                 a, b = self.pop[idx]
 
                 child = self.reproduce(a, b)
 
+                # Mutação
                 if np.random.rand() < self.mutation_rate:
                     mutation_idx = np.random.randint(0, len(child))
                     child[mutation_idx] = np.random.randint(
@@ -48,18 +56,22 @@ class GeneticAlgorithm:
 
                 fitness_child = self.obj_func(child)[0]
 
-                print("Fitness child: ", fitness_child)
-
                 if fitness_child < self.fitness[i]:
-                    new_pop[i] = child
-                    self.fitness[i] = fitness_child
+                    return child, fitness_child
                 else:
-                    new_pop[i] = self.pop[i]
+                    return self.pop[i], self.fitness[i]
+
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                results = list(executor.map(evaluate_individual, range(self.pop_size)))
+
+            for i, (new_individual, new_fitness) in enumerate(results):
+                new_pop[i] = new_individual
+                self.fitness[i] = new_fitness
 
             if np.all(new_pop == self.pop):
-                print("Converged")
-                print("Best solution: ", self.pop[np.argmin(self.fitness)])
-                print("Best fitness: ", np.min(self.fitness))
+                print("GA - Converged")
+                print("GA - Solution: ", self.pop[np.argmin(self.fitness)])
+                print("GA - Fitness: ", np.min(self.fitness))
                 return self.pop, self.fitness
 
             self.pop = new_pop
