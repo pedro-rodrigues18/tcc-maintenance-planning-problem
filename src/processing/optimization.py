@@ -5,8 +5,7 @@ from preprocessing.model.problem import Problem
 
 class Optimization:
     """
-    Class responsible for optimizing the maintenance scheduling problem using the
-    Differential Evolution algorithm.
+    Class responsible for building the objective function and checking the constraints.
     """
 
     def __init__(self, problem: Problem) -> None:
@@ -192,36 +191,11 @@ class Optimization:
         exclusion_constraint = self._exclusion_constraint(start_times)
 
         if intervention_constraint[0]:
-            # print("Intervention constraint violated.")
             penalty += intervention_constraint[1] * 1e6
-            # print("Penalty: ", penalty)
         if resources_constraint[0]:
-            # print("Resources constraint violated.")
             penalty += resources_constraint[1] * 1e6
-            # print("Penalty: ", penalty)
         if exclusion_constraint[0]:
-            # print("Exclusion constraint violated.")
             penalty += exclusion_constraint[1] * 1e6
-            # print("Penalty: ", penalty)
-
-        # print("Penalty Intervention: ", intervention_constraint[1])
-
-        # print("Penalty Resources: ", resources_constraint[1])
-
-        # print("Penalty Exclusion: ", exclusion_constraint[1])
-
-        # print(
-        #     "Constraint satisfaied: ",
-        #     not (
-        #         intervention_constraint[0]
-        #         or resources_constraint[0]
-        #         or exclusion_constraint[0]
-        #     ),
-        # )
-
-        # print("\n")
-
-        # breakpoint()
 
         return (
             not (

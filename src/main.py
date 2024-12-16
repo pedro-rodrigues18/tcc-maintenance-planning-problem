@@ -12,7 +12,7 @@ def main() -> None:
     """
     # ------------- Load the Problem ----------------
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_name = "A_01"
+    file_name = "A_07"
     input_path = os.path.join(current_dir, f"../input/{file_name}.json")
     problem_loader = InputProblemLoader(input_path)
 
@@ -26,7 +26,7 @@ def main() -> None:
     optimization_info = optimization_step()
 
     print("\nOptimization completed.")
-    print("\nBest solution:")
+    print("\nSolution found:")
     print(optimization_info["solution"])
     print("\nObjective value:")
     print(optimization_info["fitness"])

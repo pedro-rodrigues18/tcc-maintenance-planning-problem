@@ -23,7 +23,7 @@ class OptimizationStep:
         optimization = Optimization(problem=self.problem)
 
         bounds = self._create_bounds()
-        pop_size = 50
+        pop_size = 100
 
         pop = np.random.randint(
             bounds[:, 0],
