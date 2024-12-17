@@ -16,6 +16,7 @@ class GeneticAlgorithm:
         fitness: np.ndarray,
         obj_func: callable,
         mutation_rate: float = 0.1,
+        time_limit: int = 60 * 10,  # seconds
     ):
         self.file_name = file_name
         self.problem = problem
@@ -24,7 +25,7 @@ class GeneticAlgorithm:
         self.fitness = fitness
         self.obj_func = obj_func
         self.mutation_rate = mutation_rate
-        self.time_limit: int = 60 * 10  # seconds
+        self.time_limit = time_limit
 
     def reproduce(self, a, b):
         """
