@@ -3,11 +3,13 @@ import numpy as np
 import concurrent.futures
 
 from processing.optimization import Optimization
+from utils.log import log
 
 
 class DifferentialEvolution:
     def __init__(
         self,
+        file_name: str,
         optimization: Optimization,
         pop: np.ndarray,
         fitness: np.ndarray,
@@ -15,10 +17,10 @@ class DifferentialEvolution:
         bounds: np.ndarray,
         pop_size: int,
         mutation_factor: float = 0.8,
-        crossover_prob: float = 0.7,
         time_limit: int = 60 * 5,  # seconds
         tol: int = 1e-6,
     ) -> None:
+        self.file_name = file_name
         self.optimization = optimization
         self.pop = pop
         self.fitness = fitness
@@ -26,7 +28,6 @@ class DifferentialEvolution:
         self.bounds = bounds
         self.pop_size = pop_size
         self.mutation_factor = mutation_factor
-        self.crossover_prob = crossover_prob
         self.time_limit = time_limit
         self.tol = tol
 
@@ -53,10 +54,11 @@ class DifferentialEvolution:
 
         while True:
             elapsed_time = time.time() - start_time
-            print(f"DE - Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
+            # log(f"{self.file_name}", f"DE - Elapsed time: {elapsed_time:.2f} seconds.")
             if elapsed_time > self.time_limit:
-                print(
-                    f"DE - Maximum execution time reached: {elapsed_time:.2f} seconds."
+                log(
+                    f"{self.file_name}",
+                    f"DE - Maximum execution time reached: {elapsed_time:.2f} seconds.",
                 )
                 break
 
@@ -114,9 +116,9 @@ class DifferentialEvolution:
 
         eval = self.obj_func(best_individual)
 
-        print("Objective: ", eval[0])
-        print("Mean risk: ", eval[1])
-        print("Expected excess: ", eval[2])
+        log(f"{self.file_name}", f"Objective: {eval[0]}")
+        log(f"{self.file_name}", f"Mean risk: {eval[1]}")
+        log(f"{self.file_name}", f"Expected excess: {eval[2]}")
 
         return self._format_solution(best_individual), self.fitness[best_idx]
 

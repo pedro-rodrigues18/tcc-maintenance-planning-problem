@@ -6,8 +6,9 @@ from processing.genetic_algorithm import GeneticAlgorithm
 
 
 class OptimizationStep:
-    def __init__(self, problem: Problem):
+    def __init__(self, problem: Problem, file_name: str = None):
         self.problem = problem
+        self.file_name = file_name
 
     def __call__(self):
         return self._optimization_step()
@@ -39,13 +40,13 @@ class OptimizationStep:
         copy_fitness = np.copy(fitness)
 
         ga = GeneticAlgorithm(
+            file_name=self.file_name,
             problem=self.problem,
             pop=copy_pop,
             pop_size=pop_size,
             fitness=copy_fitness,
             obj_func=optimization._build_objective_function,
             mutation_rate=0.1,
-            crossover_rate=0.7,
         )
 
         new_population, new_fitness = ga.optimize()
@@ -60,6 +61,7 @@ class OptimizationStep:
         fitness = np.concatenate((fitness[:middle], new_fitness[:middle]), axis=0)
 
         de = DifferentialEvolution(
+            file_name=self.file_name,
             optimization=optimization,
             obj_func=optimization._build_objective_function,
             pop_size=pop_size,

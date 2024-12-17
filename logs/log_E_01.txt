@@ -1,0 +1,48 @@
+Starting at 2024-12-16 23:44:33
+Loading the problem...
+Problem loaded successfully!
+Elapsed time: 0.00 seconds
+Optimizing the problem...
+GA - Converged
+GA - Solution: [1 1 2]
+GA - Fitness: 4.5
+Objective: 4.5
+Mean risk: 8.333333333333334
+Expected excess: 0.6666666666666666
+
+Optimization completed.
+
+Solution found:
+I1 1
+I2 1
+I3 2
+
+Objective value:
+4.5
+Saving the solution to the output file...
+Done!
+
+Starting at 2024-12-16 23:46:57
+Loading the problem...
+Problem loaded successfully!
+Elapsed time: 0.00 seconds
+Optimizing the problem...
+GA - Converged
+GA - Solution: [1 1 2]
+GA - Fitness: 4.5
+Objective: 4.5
+Mean risk: 8.333333333333334
+Expected excess: 0.6666666666666666
+
+Optimization completed.
+
+Solution found:
+I1 1
+I2 1
+I3 2
+
+Objective value:
+4.5
+Saving the solution to the output file...
+Done!
+

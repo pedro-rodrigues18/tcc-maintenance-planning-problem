@@ -2,18 +2,28 @@ import time
 import numpy as np
 import concurrent.futures
 
+from preprocessing.model.problem import Problem
+from utils.log import log
+
 
 class GeneticAlgorithm:
     def __init__(
-        self, problem, pop, pop_size, fitness, obj_func, mutation_rate, crossover_rate
+        self,
+        file_name: str,
+        problem: Problem,
+        pop: np.ndarray,
+        pop_size: int,
+        fitness: np.ndarray,
+        obj_func: callable,
+        mutation_rate: float = 0.1,
     ):
+        self.file_name = file_name
         self.problem = problem
         self.pop = pop
         self.pop_size = pop_size
         self.fitness = fitness
         self.obj_func = obj_func
         self.mutation_rate = mutation_rate
-        self.crossover_rate = crossover_rate
         self.time_limit: int = 60 * 10  # seconds
 
     def reproduce(self, a, b):
@@ -29,10 +39,11 @@ class GeneticAlgorithm:
 
         while True:
             elapsed_time = time.time() - start_time
-            print(f"GA - Elapsed time: {elapsed_time:.2f} seconds.", end="\r")
+            # log(f"{self.file_name}", f"GA - Elapsed time: {elapsed_time:.2f} seconds.")
             if elapsed_time > self.time_limit:
-                print(
-                    f"GA - Maximum execution time reached: {elapsed_time:.2f} seconds."
+                log(
+                    f"{self.file_name}",
+                    f"GA - Maximum execution time reached: {elapsed_time:.2f} seconds.",
                 )
                 return self.pop, self.fitness
 
@@ -69,9 +80,12 @@ class GeneticAlgorithm:
                 self.fitness[i] = new_fitness
 
             if np.all(new_pop == self.pop):
-                print("GA - Converged")
-                print("GA - Solution: ", self.pop[np.argmin(self.fitness)])
-                print("GA - Fitness: ", np.min(self.fitness))
+                log(f"{self.file_name}", "GA - Converged")
+                log(
+                    f"{self.file_name}",
+                    f"GA - Solution: {self.pop[np.argmin(self.fitness)]}",
+                )
+                log(f"{self.file_name}", f"GA - Fitness: {np.min(self.fitness)}")
                 return self.pop, self.fitness
 
             self.pop = new_pop

@@ -10,6 +10,7 @@ from preprocessing.model.problem import Problem
 from preprocessing.model.risk import Risk
 from preprocessing.model.season import Season
 from preprocessing.model.time_horizon import TimeHorizon
+from utils.log import log
 
 
 class InputProblemLoader:
@@ -236,7 +237,9 @@ class InputProblemLoader:
         """
         start_time = time.time()
 
-        print("\nLoading the problem...")
+        file_name = self.path.split("/")[-1].split(".")[0]
+
+        log(f"{file_name}", "Loading the problem...")
 
         data = self._parse()
 
@@ -262,7 +265,7 @@ class InputProblemLoader:
 
         total_time = time.time() - start_time
 
-        print("Problem loaded successfully!")
-        print(f"Elapsed time: {total_time:.2f} seconds")
+        log(f"{file_name}", "Problem loaded successfully!")
+        log(f"{file_name}", f"Elapsed time: {total_time:.2f} seconds")
 
         return problem
