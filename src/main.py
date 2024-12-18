@@ -66,7 +66,7 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{file_name}.txt"
     with open(output_file, "w") as f:
-        f.write(f"{optimization_info["solution"]}")
+        f.write(f"{optimization_info['solution']}")
 
     log(f"{file_name}", "Done!\n")
 
