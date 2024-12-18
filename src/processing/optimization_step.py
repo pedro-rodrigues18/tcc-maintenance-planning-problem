@@ -3,12 +3,27 @@ from preprocessing.model.problem import Problem
 from processing.optimization import Optimization
 from processing.differential_evolution import DifferentialEvolution
 from processing.genetic_algorithm import GeneticAlgorithm
+from utils.log import log
 
 
 class OptimizationStep:
-    def __init__(self, problem: Problem, file_name: str = None):
+    def __init__(
+        self,
+        problem: Problem,
+        file_name: str = None,
+        pop_size: int = 100,
+        crossover_rate: float = 0.8,
+        mutation_rate: float = 0.1,
+        mutation_factor: float = 0.8,
+        rho: float = 0.5,
+    ) -> None:
         self.problem = problem
         self.file_name = file_name
+        self.pop_size = pop_size
+        self.crossover_rate = crossover_rate
+        self.mutation_rate = mutation_rate
+        self.mutation_factor = mutation_factor
+        self.rho = rho
 
     def __call__(self):
         return self._optimization_step()
@@ -24,12 +39,13 @@ class OptimizationStep:
         optimization = Optimization(problem=self.problem)
 
         bounds = self._create_bounds()
-        pop_size = 100
+
+        # log(f"{self.file_name}", f"Population size: {self.pop_size}")
 
         pop = np.random.randint(
             bounds[:, 0],
             bounds[:, 1] + 1,
-            (pop_size, bounds.shape[0]),
+            (self.pop_size, bounds.shape[0]),
         )
 
         fitness = np.array(
@@ -43,10 +59,10 @@ class OptimizationStep:
             file_name=self.file_name,
             problem=self.problem,
             pop=copy_pop,
-            pop_size=pop_size,
+            pop_size=self.pop_size,
             fitness=copy_fitness,
             obj_func=optimization._build_objective_function,
-            mutation_rate=0.1,
+            mutation_rate=self.mutation_rate,
         )
 
         new_population, new_fitness = ga.optimize()
@@ -64,10 +80,12 @@ class OptimizationStep:
             file_name=self.file_name,
             optimization=optimization,
             obj_func=optimization._build_objective_function,
-            pop_size=pop_size,
+            pop_size=self.pop_size,
             pop=pop,
             fitness=fitness,
             bounds=bounds,
+            mutation_factor=self.mutation_factor,
+            rho=self.rho,
         )
 
         solution, fitness = de.optimize()

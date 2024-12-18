@@ -1,6 +1,5 @@
 import time
 import numpy as np
-import concurrent.futures
 
 from preprocessing.model.problem import Problem
 from utils.log import log
@@ -16,7 +15,7 @@ class GeneticAlgorithm:
         fitness: np.ndarray,
         obj_func: callable,
         mutation_rate: float = 0.1,
-        time_limit: int = 60 * 10,  # seconds
+        time_limit: int = 60 * 1,  # seconds
     ):
         self.file_name = file_name
         self.problem = problem
@@ -73,8 +72,7 @@ class GeneticAlgorithm:
                 else:
                     return self.pop[i], self.fitness[i]
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                results = list(executor.map(evaluate_individual, range(self.pop_size)))
+            results = [evaluate_individual(i) for i in range(self.pop_size)]
 
             for i, (new_individual, new_fitness) in enumerate(results):
                 new_pop[i] = new_individual

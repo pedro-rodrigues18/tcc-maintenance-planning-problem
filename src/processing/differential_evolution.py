@@ -17,7 +17,8 @@ class DifferentialEvolution:
         bounds: np.ndarray,
         pop_size: int,
         mutation_factor: float = 0.8,
-        time_limit: int = 60 * 5,  # seconds
+        rho: float = 0.5,
+        time_limit: int = 60 * 1,  # seconds
         tol: int = 1e-6,
     ) -> None:
         self.file_name = file_name
@@ -28,13 +29,16 @@ class DifferentialEvolution:
         self.bounds = bounds
         self.pop_size = pop_size
         self.mutation_factor = mutation_factor
+        self.rho = rho
         self.time_limit = time_limit
         self.tol = tol
 
-    def exponential_crossover(self, x, v, rho=0.5):
+    def exponential_crossover(self, x, v):
         n = len(x)
         k1 = np.random.randint(0, n)  # Random initial position
-        d = np.random.geometric(p=1 - rho)  # Length based on exponential distribution
+        d = np.random.geometric(
+            p=1 - self.rho
+        )  # Length based on exponential distribution
         k2 = k1 + d
 
         # Indicator vector
@@ -98,8 +102,7 @@ class DifferentialEvolution:
                 else:
                     return self.pop[j], self.fitness[j]
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                results = list(executor.map(evaluate_individual, range(self.pop_size)))
+            results = [evaluate_individual(j) for j in range(self.pop_size)]
 
             for j, (new_individual, new_ind_fitness) in enumerate(results):
                 new_pop[j] = new_individual

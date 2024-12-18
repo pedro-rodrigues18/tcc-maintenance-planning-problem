@@ -1,0 +1,6 @@
+parameterFile = "parameters.txt"
+targetRunner = "/home/pedro/Repositories/tcc-maintenance-planning-problem/irace/target_runner.sh"
+logFile = "irace_log.txt"
+execDir = "./"
+trainInstancesFile = "train_instances.txt"
+maxExperiments = 500
