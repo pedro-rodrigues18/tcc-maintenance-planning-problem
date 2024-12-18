@@ -1,2 +1,2 @@
 run:
-	python src/main.py E_01 100 0.8 0.1 0.8 0.5
+	python src/main.py A_09 110 0.3082 0.2443 0.6335 0.2825

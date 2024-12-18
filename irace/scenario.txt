@@ -3,4 +3,4 @@ targetRunner = "/home/pedro/Repositories/tcc-maintenance-planning-problem/irace/
 logFile = "irace_log.txt"
 execDir = "./"
 trainInstancesFile = "train_instances.txt"
-maxExperiments = 500
+maxExperiments = 200
