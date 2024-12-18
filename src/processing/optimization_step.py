@@ -40,8 +40,6 @@ class OptimizationStep:
 
         bounds = self._create_bounds()
 
-        # log(f"{self.file_name}", f"Population size: {self.pop_size}")
-
         pop = np.random.randint(
             bounds[:, 0],
             bounds[:, 1] + 1,
@@ -72,9 +70,15 @@ class OptimizationStep:
         new_fitness = new_fitness[sorted_idx]
         new_population = new_population[sorted_idx]
 
-        middle = len(pop) // 2
-        pop = np.concatenate((pop[:middle], new_population[:middle]), axis=0)
-        fitness = np.concatenate((fitness[:middle], new_fitness[:middle]), axis=0)
+        middle = self.pop_size // 2
+        if self.pop_size % 2 == 0:
+            pop = np.concatenate((pop[:middle], new_population[:middle]), axis=0)
+            fitness = np.concatenate((fitness[:middle], new_fitness[:middle]), axis=0)
+        else:
+            pop = np.concatenate((pop[:middle], new_population[: middle + 1]), axis=0)
+            fitness = np.concatenate(
+                (fitness[:middle], new_fitness[: middle + 1]), axis=0
+            )
 
         de = DifferentialEvolution(
             file_name=self.file_name,
