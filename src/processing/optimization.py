@@ -1,4 +1,3 @@
-import math
 import numpy as np
 from preprocessing.model.problem import Problem
 
@@ -54,10 +53,10 @@ class Optimization:
             mean_risk += risk_t
 
             # Sort to calculate the excess using the quantile
-            risk_by_scenario_sorted = sorted(risk_by_scenario)
-            quantile_index = int(math.ceil(quantile * len(risk_by_scenario_sorted))) - 1
+            risk_by_scenario_sorted = np.sort(risk_by_scenario)
+            quantile_index = int(np.ceil(quantile * len(risk_by_scenario_sorted))) - 1
             excess_t = 0.0
-            if risk_by_scenario_sorted:
+            if risk_by_scenario_sorted.size > 0:
                 excess_t = max(0.0, risk_by_scenario_sorted[quantile_index] - risk_t)
 
             expected_excess += excess_t
@@ -159,12 +158,16 @@ class Optimization:
                 exclusion.season,
             )
 
-            for i, intervention in enumerate(self.problem.interventions):
-                # index 0 represents the intervention 1
-                if intervention.name == i1:
-                    i1 = i
-                if intervention.name == i2:
-                    i2 = i
+            i1 = next(
+                i
+                for i, intervention in enumerate(self.problem.interventions)
+                if intervention.name == i1
+            )
+            i2 = next(
+                i
+                for i, intervention in enumerate(self.problem.interventions)
+                if intervention.name == i2
+            )
 
             start1 = start_times[i1]
             end1 = start1 + self.problem.interventions[i1].delta[start1 - 1] - 1
