@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from preprocessing.model.season import Season
 
 
 class TimeHorizon(BaseModel):

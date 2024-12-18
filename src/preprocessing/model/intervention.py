@@ -1,6 +1,4 @@
 from pydantic import BaseModel
-from preprocessing.model.resource import Resource
-from preprocessing.model.risk import Risk
 
 
 class Intervention(BaseModel):

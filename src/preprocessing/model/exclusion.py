@@ -1,6 +1,4 @@
-from typing_extensions import Optional
 from pydantic import BaseModel
-from preprocessing.model.intervention import Intervention
 from preprocessing.model.season import Season
 
 

@@ -1,13 +1,11 @@
 import json
 import time
-from typing import Any
-
 import numpy as np
+
 from preprocessing.model.resource import Resource
 from preprocessing.model.exclusion import Exclusion
 from preprocessing.model.intervention import Intervention
 from preprocessing.model.problem import Problem
-from preprocessing.model.risk import Risk
 from preprocessing.model.season import Season
 from preprocessing.model.time_horizon import TimeHorizon
 from utils.log import log

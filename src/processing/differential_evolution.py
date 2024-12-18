@@ -1,6 +1,5 @@
 import time
 import numpy as np
-import concurrent.futures
 
 from processing.optimization import Optimization
 from utils.log import log

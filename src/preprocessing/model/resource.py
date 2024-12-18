@@ -14,4 +14,3 @@ class Resource(BaseModel):
     name: str
     max: list[int | float]
     min: list[int | float]
-    # workload: list[dict[int, float]] = []
