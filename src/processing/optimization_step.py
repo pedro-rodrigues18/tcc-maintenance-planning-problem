@@ -46,8 +46,13 @@ class OptimizationStep:
             (self.pop_size, bounds.shape[0]),
         )
 
+        pop_penalty = [optimization._constraints_satisfied(ind)[1] for ind in pop]
+
         fitness = np.array(
-            [optimization._build_objective_function(ind)[0] for ind in pop]
+            [
+                optimization._build_objective_function(ind, pop_penalty)[0]
+                for (ind, pop_penalty) in zip(pop, pop_penalty)
+            ]
         )
 
         copy_pop = np.copy(pop)
