@@ -22,7 +22,9 @@ class Optimization:
         max_scenarios = max(self.problem.scenarios)
 
         # Arrays for risk data
-        self.risk_array = np.zeros((T + 1, n_interventions, T + 1, max_scenarios))
+        self.risk_array = np.zeros(
+            (T + 1, n_interventions, T + 1, max_scenarios), dtype=np.float32
+        )
         for i, intervention in enumerate(self.problem.interventions):
             for t in range(1, T + 1):
                 for start_time in range(1, T + 1):
