@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit
 from preprocessing.model.problem import Problem
 
 
@@ -9,202 +10,234 @@ class Optimization:
 
     def __init__(self, problem: Problem) -> None:
         self.problem = problem
+        self._prepare_data_structures()
 
-    def _build_objective_function(self, start_times, penalty=0) -> float:
+    def _prepare_data_structures(self):
         """
-        Objective function that combines the average cost and the expected excess.
-
-        Args:
-            start_times (list): List with the start times for each intervention.
-
-        Returns:
-            objective_value (float): Objective function value
+        Prepare all data structures for use with Numba
         """
-        _, penalty = self._constraints_satisfied(start_times)
-
         T = self.problem.time_horizon.time_steps
-        quantile = self.problem.quantile
-        alpha = self.problem.alpha
-        mean_risk = 0.0
-        expected_excess = 0.0
+        n_interventions = len(self.problem.interventions)
+        n_resources = len(self.problem.resources)
+        max_scenarios = max(self.problem.scenarios)
 
-        for t in range(1, T + 1):
-            risk_t = 0.0
-            risk_by_scenario = []
-
-            for i, intervention in enumerate(self.problem.interventions):
-                start_time = start_times[i]
-                if start_time <= t < start_time + intervention.delta[start_time - 1]:
-                    for s in range(self.problem.scenarios[t - 1]):
-                        try:
-                            risk_value = intervention.risk[str(t)][str(start_time)][s]
-                        except KeyError:
-                            risk_value = 0.0
-
-                        risk_t += risk_value
-                        # Acumulate the risk for each scenario at time t
-                        if len(risk_by_scenario) <= s:
-                            risk_by_scenario.append(risk_value)
-                        else:
-                            risk_by_scenario[s] += risk_value
-
-            # Calculate the average risk for time t
-            risk_t /= max(1, self.problem.scenarios[t - 1])  # Avoid division by zero
-            mean_risk += risk_t
-
-            # Sort to calculate the excess using the quantile
-            risk_by_scenario_sorted = np.sort(risk_by_scenario)
-            quantile_index = int(np.ceil(quantile * len(risk_by_scenario_sorted))) - 1
-            excess_t = 0.0
-            if risk_by_scenario_sorted.size > 0:
-                excess_t = max(0.0, risk_by_scenario_sorted[quantile_index] - risk_t)
-
-            expected_excess += excess_t
-
-        mean_risk /= T
-        expected_excess /= T
-        objective = (alpha * mean_risk) + ((1.0 - alpha) * expected_excess)
-
-        return objective + penalty, mean_risk, expected_excess
-
-    def _intervention_constraint(self, start_times) -> tuple[bool, float]:
-        """
-        Check if all interventions can be scheduled without exceeding the time horizon and respecting tmax.
-
-        Args:
-            start_times (list): List with the start times for each intervention.
-
-        Returns:
-            bool: True if all interventions respect the time constraints, False otherwise.
-        """
-        penalty = 0
+        # Arrays for risk data
+        self.risk_array = np.zeros((T + 1, n_interventions, T + 1, max_scenarios))
         for i, intervention in enumerate(self.problem.interventions):
-            start_time = start_times[i]
+            for t in range(1, T + 1):
+                for start_time in range(1, T + 1):
+                    try:
+                        risks = intervention.risk[str(t)][str(start_time)]
+                        for s, risk in enumerate(risks):
+                            self.risk_array[t, i, start_time, s] = risk
+                    except KeyError:
+                        continue
 
-            if start_time < 0 or start_time > intervention.tmax:
-                penalty += start_time - intervention.tmax
-                return True, penalty
+        # Arrays for intervention durations
+        self.deltas = np.zeros((n_interventions, T + 1), dtype=np.int32)
+        for i, intervention in enumerate(self.problem.interventions):
+            for t in range(len(intervention.delta)):
+                self.deltas[i, t] = intervention.delta[t]
 
-            if (
-                start_time + intervention.delta[start_time - 1] - 1
-                > self.problem.time_horizon.time_steps
-            ):
-                penalty = (
-                    start_time + intervention.delta[start_time - 1] - 1
-                ) - self.problem.time_horizon.time_steps
-                return True, penalty
+        # Arrays for resource limits
+        self.resource_mins = np.zeros((n_resources, T))
+        self.resource_maxs = np.zeros((n_resources, T))
+        for i, resource in enumerate(self.problem.resources):
+            self.resource_mins[i] = resource.min
+            self.resource_maxs[i] = resource.max
 
-        return False, penalty
+        # Arrays for resource workload
+        self.resource_workload = np.zeros((n_resources, n_interventions, T + 1, T + 1))
+        for r, resource in enumerate(self.problem.resources):
+            for i, intervention in enumerate(self.problem.interventions):
+                try:
+                    workload = intervention.resource_workload[resource.name]
+                    for t in range(1, T + 1):
+                        for start_time in range(1, T + 1):
+                            try:
+                                self.resource_workload[r, i, t, start_time] = workload[
+                                    str(t)
+                                ][str(start_time)]
+                            except KeyError:
+                                continue
+                except KeyError:
+                    continue
 
-    def _resources_constraint(self, start_times) -> tuple[bool, float]:
-        """
-        Check if the resource usage by all interventions respects the limits for each period.
+        # Arrays for exclusions
+        n_exclusions = len(self.problem.exclusions)
+        self.exclusion_pairs = np.zeros((n_exclusions, 2), dtype=np.int32)
+        self.exclusion_seasons = np.zeros((n_exclusions, T + 1), dtype=np.int32)
 
-        Args:
-            start_times (list): List with the start times for each intervention.
-
-        Returns:
-            bool: True if the resources are within the limits, False otherwise.
-        """
-        eps = 1e-6
-        penalty = 0
-        for t in range(1, self.problem.time_horizon.time_steps + 1):
-            for resource in self.problem.resources:
-                total_resource_usage = 0
-                for i, intervention in enumerate(self.problem.interventions):
-                    start_time = start_times[i]
-                    if (
-                        start_time
-                        <= t
-                        <= start_time + intervention.delta[start_time - 1] - 1
-                    ):
-                        try:
-                            if intervention.resource_workload[resource.name][str(t)]:
-                                total_resource_usage += intervention.resource_workload[
-                                    resource.name
-                                ][str(t)][str(start_time)]
-
-                        except KeyError:
-                            pass
-
-                # Check if the resource usage is within the minimum and maximum limits
-                if total_resource_usage < resource.min[t - 1] - eps:
-                    penalty += resource.min[t - 1] - total_resource_usage
-
-                elif total_resource_usage > resource.max[t - 1] + eps:
-                    penalty += total_resource_usage - resource.max[t - 1]
-
-        if penalty > 0:
-            return True, penalty
-
-        return False, penalty
-
-    def _exclusion_constraint(self, start_times) -> tuple[bool, float]:
-        """
-        Check if mutually exclusive interventions are not occurring at the same time.
-
-        Args:
-            start_times (list): List with the start times for each intervention.
-
-        Returns:
-            bool: True if the exclusions are respected, False otherwise.
-        """
-        penalty = 0
-        for exclusion in self.problem.exclusions:
-
-            i1, i2, season = (
-                exclusion.interventions[0],
-                exclusion.interventions[1],
-                exclusion.season,
-            )
-
+        for idx, excl in enumerate(self.problem.exclusions):
             i1 = next(
                 i
-                for i, intervention in enumerate(self.problem.interventions)
-                if intervention.name == i1
+                for i, inv in enumerate(self.problem.interventions)
+                if inv.name == excl.interventions[0]
             )
             i2 = next(
                 i
-                for i, intervention in enumerate(self.problem.interventions)
-                if intervention.name == i2
+                for i, inv in enumerate(self.problem.interventions)
+                if inv.name == excl.interventions[1]
             )
+            self.exclusion_pairs[idx] = [i1, i2]
+            for t in excl.season.duration:
+                self.exclusion_seasons[idx, t] = 1
 
-            start1 = start_times[i1]
-            end1 = start1 + self.problem.interventions[i1].delta[start1 - 1] - 1
+        # Other important parameters
+        self.tmax_values = np.array(
+            [intervention.tmax for intervention in self.problem.interventions],
+            dtype=np.int32,
+        )
+        self.time_steps = T
+        self.scenarios_array = np.array(self.problem.scenarios)
 
-            start2 = start_times[i2]
-            end2 = start2 + self.problem.interventions[i2].delta[start2 - 1] - 1
-
-            t_start = max(start1, start2)
-            t_end = min(end1, end2)
-
-            if t_start <= t_end:
-                for t in range(t_start, t_end + 1):
-                    if t in season.duration:
-                        penalty += 1
-
-        return penalty > 0, penalty
-
-    def _constraints_satisfied(self, start_times) -> bool:
-
-        penalty = 0.0
-
-        intervention_constraint = self._intervention_constraint(start_times)
-        resources_constraint = self._resources_constraint(start_times)
-        exclusion_constraint = self._exclusion_constraint(start_times)
-
-        if intervention_constraint[0]:
-            penalty += intervention_constraint[1] * 1e6
-        if resources_constraint[0]:
-            penalty += resources_constraint[1] * 1e6
-        if exclusion_constraint[0]:
-            penalty += exclusion_constraint[1] * 1e6
-
-        return (
-            not (
-                intervention_constraint[0]
-                or resources_constraint[0]
-                or exclusion_constraint[0]
-            ),
+    def _build_objective_function(self, start_times, penalty=0) -> float:
+        """
+        Optimized objective function interface
+        """
+        return _numba_objective_function(
+            np.array(start_times),
+            self.risk_array,
+            self.deltas,
+            self.time_steps,
+            self.problem.quantile,
+            self.problem.alpha,
+            self.scenarios_array,
             penalty,
         )
+
+    def _constraints_satisfied(self, start_times) -> tuple[bool, float]:
+        start_times_array = np.array(start_times, dtype=np.int32)
+        penalty = 0.0
+
+        violated, pen = _numba_intervention_constraint(
+            start_times_array, self.deltas, self.tmax_values, self.time_steps
+        )
+        if violated:
+            penalty += pen * 1e6
+
+        violated, pen = _numba_resources_constraint(
+            start_times_array,
+            self.resource_workload,
+            self.resource_mins,
+            self.resource_maxs,
+            self.deltas,
+            self.time_steps,
+        )
+        if violated:
+            penalty += pen * 1e6
+
+        violated, pen = _numba_exclusion_constraint(
+            start_times_array, self.deltas, self.exclusion_pairs, self.exclusion_seasons
+        )
+        if violated:
+            penalty += pen * 1e6
+
+        return penalty == 0, penalty
+
+
+@njit
+def _numba_objective_function(
+    start_times, risk_array, deltas, T, quantile, alpha, scenarios, penalty
+):
+    mean_risk = 0.0
+    expected_excess = 0.0
+
+    for t in range(1, T + 1):
+        risk_t = 0.0
+        risk_by_scenario = np.zeros(scenarios[t - 1])
+
+        for i in range(len(start_times)):
+            start_time = int(start_times[i])
+            if start_time <= t < start_time + deltas[i, start_time - 1]:
+                for s in range(scenarios[t - 1]):
+                    risk_value = risk_array[t, i, start_time, s]
+                    risk_t += risk_value
+                    risk_by_scenario[s] += risk_value
+
+        risk_t /= max(1, scenarios[t - 1])
+        mean_risk += risk_t
+
+        risk_by_scenario.sort()
+        quantile_index = int(np.ceil(quantile * len(risk_by_scenario))) - 1
+        excess_t = 0.0
+        if len(risk_by_scenario) > 0:
+            excess_t = max(0.0, risk_by_scenario[quantile_index] - risk_t)
+
+        expected_excess += excess_t
+
+    mean_risk /= T
+    expected_excess /= T
+    objective = (alpha * mean_risk) + ((1.0 - alpha) * expected_excess)
+
+    return objective + penalty, mean_risk, expected_excess
+
+
+@njit
+def _numba_intervention_constraint(start_times, deltas, tmax_values, time_horizon):
+    penalty = 0.0
+    for i in range(len(start_times)):
+        start_time = int(start_times[i])
+
+        if start_time < 0 or start_time > tmax_values[i]:
+            penalty = float(start_time - tmax_values[i])
+            return True, penalty
+
+        if start_time > 0 and start_time <= len(deltas[i]):
+            duration = deltas[i, start_time - 1]
+            end_time = start_time + duration - 1
+
+            if end_time > time_horizon:
+                penalty = float(end_time - time_horizon)
+                return True, penalty
+
+    return False, penalty
+
+
+@njit
+def _numba_resources_constraint(
+    start_times, resource_workload, resource_mins, resource_maxs, deltas, T
+):
+    eps = 1e-6
+    penalty = 0.0
+
+    for t in range(1, T + 1):
+        for r in range(len(resource_mins)):
+            total_resource_usage = 0.0
+
+            for i in range(len(start_times)):
+                start_time = int(start_times[i])
+                if start_time <= t <= start_time + deltas[i, start_time - 1] - 1:
+                    total_resource_usage += resource_workload[r, i, t, start_time]
+
+            if total_resource_usage < resource_mins[r, t - 1] - eps:
+                penalty += resource_mins[r, t - 1] - total_resource_usage
+            elif total_resource_usage > resource_maxs[r, t - 1] + eps:
+                penalty += total_resource_usage - resource_maxs[r, t - 1]
+
+    return penalty > 0, penalty
+
+
+@njit
+def _numba_exclusion_constraint(
+    start_times, deltas, exclusion_pairs, exclusion_seasons
+):
+    penalty = 0.0
+
+    for idx in range(len(exclusion_pairs)):
+        i1, i2 = exclusion_pairs[idx]
+        start1 = int(start_times[i1])
+        end1 = start1 + deltas[i1, start1 - 1] - 1
+
+        start2 = int(start_times[i2])
+        end2 = start2 + deltas[i2, start2 - 1] - 1
+
+        t_start = max(start1, start2)
+        t_end = min(end1, end2)
+
+        if t_start <= t_end:
+            for t in range(t_start, t_end + 1):
+                if exclusion_seasons[idx, t] == 1:
+                    penalty += 1
+
+    return penalty > 0, penalty

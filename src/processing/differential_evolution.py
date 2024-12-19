@@ -17,7 +17,7 @@ class DifferentialEvolution:
         pop_size: int,
         mutation_factor: float = 0.8,
         rho: float = 0.5,
-        time_limit: int = 60 * 1,  # seconds
+        time_limit: int = 60 * 10,  # seconds
         tol: int = 1e-6,
     ) -> None:
         self.file_name = file_name
@@ -88,6 +88,8 @@ class DifferentialEvolution:
                 )
 
                 trial_fitness = self.obj_func(trial, trial_penalty)[0]
+
+                # print(f"DE - Fitness trial: {trial_fitness}")
 
                 diff_penalty = abs(trial_penalty - pop_penalty)
 

@@ -56,6 +56,7 @@ class OptimizationStep:
         ga = GeneticAlgorithm(
             file_name=self.file_name,
             problem=self.problem,
+            optimization=optimization,
             pop=copy_pop,
             pop_size=self.pop_size,
             fitness=copy_fitness,

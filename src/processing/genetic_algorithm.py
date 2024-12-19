@@ -2,6 +2,7 @@ import time
 import numpy as np
 
 from preprocessing.model.problem import Problem
+from processing.optimization import Optimization
 from utils.log import log
 
 
@@ -10,15 +11,17 @@ class GeneticAlgorithm:
         self,
         file_name: str,
         problem: Problem,
+        optimization: Optimization,
         pop: np.ndarray,
         pop_size: int,
         fitness: np.ndarray,
         obj_func: callable,
         mutation_rate: float = 0.1,
-        time_limit: int = 60 * 1,  # seconds
+        time_limit: int = 60 * 5,  # seconds
     ):
         self.file_name = file_name
         self.problem = problem
+        self.optimization = optimization
         self.pop = pop
         self.pop_size = pop_size
         self.fitness = fitness
@@ -65,10 +68,15 @@ class GeneticAlgorithm:
                         1, self.problem.time_horizon.time_steps
                     )
 
-                fitness_child = self.obj_func(child)[0]
+                _, child_penalty = self.optimization._constraints_satisfied(
+                    child.tolist()
+                )
+                child_fitness = self.obj_func(child, child_penalty)[0]
 
-                if fitness_child < self.fitness[i]:
-                    return child, fitness_child
+                # print(f"GA - Fitness child: {child_fitness}")
+
+                if child_fitness < self.fitness[i]:
+                    return child, child_fitness
                 else:
                     return self.pop[i], self.fitness[i]
 
