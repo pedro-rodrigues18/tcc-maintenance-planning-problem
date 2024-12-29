@@ -29,13 +29,39 @@ class GeneticAlgorithm:
         self.mutation_rate = mutation_rate
         self.time_limit = time_limit
 
-    def reproduce(self, a, b):
+    def _reproduce(self, a, b):
         """
         Reproduce two individuals.
         """
         n = len(a)
         c = np.random.randint(1, n)
         return np.concatenate((a[:c], b[c:]), axis=0)
+
+    def _evaluate_individual(self, i):
+        """
+        Evaluate and generate a new individual.
+        """
+        idx = np.random.choice(self.pop_size, 2, replace=False)
+        a, b = self.pop[idx]
+
+        child = self._reproduce(a, b)
+
+        # Mutation
+        if np.random.rand() < self.mutation_rate:
+            mutation_idx = np.random.randint(0, len(child))
+            child[mutation_idx] = np.random.randint(
+                1, self.problem.time_horizon.time_steps
+            )
+
+        _, child_penalty = self.optimization._constraints_satisfied(child.tolist())
+        child_fitness = self.obj_func(child, child_penalty)[0]
+
+        # print(f"GA - Fitness child: {child_fitness}")
+
+        if child_fitness < self.fitness[i]:
+            return child, child_fitness
+        else:
+            return self.pop[i], self.fitness[i]
 
     def optimize(self):
         start_time = time.time()
@@ -52,35 +78,7 @@ class GeneticAlgorithm:
 
             new_pop = np.zeros_like(self.pop)
 
-            def evaluate_individual(i):
-                """
-                Evaluate and generate a new individual.
-                """
-                idx = np.random.choice(self.pop_size, 2, replace=False)
-                a, b = self.pop[idx]
-
-                child = self.reproduce(a, b)
-
-                # Mutation
-                if np.random.rand() < self.mutation_rate:
-                    mutation_idx = np.random.randint(0, len(child))
-                    child[mutation_idx] = np.random.randint(
-                        1, self.problem.time_horizon.time_steps
-                    )
-
-                _, child_penalty = self.optimization._constraints_satisfied(
-                    child.tolist()
-                )
-                child_fitness = self.obj_func(child, child_penalty)[0]
-
-                # print(f"GA - Fitness child: {child_fitness}")
-
-                if child_fitness < self.fitness[i]:
-                    return child, child_fitness
-                else:
-                    return self.pop[i], self.fitness[i]
-
-            results = [evaluate_individual(i) for i in range(self.pop_size)]
+            results = [self._evaluate_individual(i) for i in range(self.pop_size)]
 
             for i, (new_individual, new_fitness) in enumerate(results):
                 new_pop[i] = new_individual

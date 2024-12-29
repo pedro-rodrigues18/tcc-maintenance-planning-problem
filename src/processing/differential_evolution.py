@@ -32,7 +32,7 @@ class DifferentialEvolution:
         self.time_limit = time_limit
         self.tol = tol
 
-    def exponential_crossover(self, x, v):
+    def _exponential_crossover(self, x, v):
         n = len(x)
         k1 = np.random.randint(0, n)  # Random initial position
         d = np.random.geometric(
@@ -52,6 +52,39 @@ class DifferentialEvolution:
         x_recomb = np.where(r == 1, v, x)
         return x_recomb
 
+    def _evaluate_individual(self, j):
+        idx = np.random.choice(self.pop_size, 3, replace=False)
+        a, b, c = self.pop[idx]
+
+        # Mutation
+        mutant = np.clip(
+            a + self.mutation_factor * (b - c),
+            self.bounds[:, 0],
+            self.bounds[:, 1],
+        ).astype(int)
+
+        # Crossover
+        trial = self._exponential_crossover(self.pop[j], mutant)
+
+        _, pop_penalty = self.optimization._constraints_satisfied(self.pop[j])
+        _, trial_penalty = self.optimization._constraints_satisfied(trial.tolist())
+
+        trial_fitness = self.obj_func(trial, trial_penalty)[0]
+
+        # print(f"DE - Fitness trial: {trial_fitness}")
+
+        diff_penalty = abs(trial_penalty - pop_penalty)
+
+        if diff_penalty < 1e-6:
+            if trial_fitness < self.fitness[j]:
+                return trial, trial_fitness
+            else:
+                return self.pop[j], self.fitness[j]
+        elif trial_penalty < pop_penalty:
+            return trial, trial_fitness
+        else:
+            return self.pop[j], self.fitness[j]
+
     def optimize(self):
         start_time = time.time()
 
@@ -68,42 +101,7 @@ class DifferentialEvolution:
             new_pop = np.zeros_like(self.pop)
             new_fitness = np.zeros_like(self.fitness)
 
-            def evaluate_individual(j):
-                idx = np.random.choice(self.pop_size, 3, replace=False)
-                a, b, c = self.pop[idx]
-
-                # Mutation
-                mutant = np.clip(
-                    a + self.mutation_factor * (b - c),
-                    self.bounds[:, 0],
-                    self.bounds[:, 1],
-                ).astype(int)
-
-                # Crossover
-                trial = self.exponential_crossover(self.pop[j], mutant)
-
-                _, pop_penalty = self.optimization._constraints_satisfied(self.pop[j])
-                _, trial_penalty = self.optimization._constraints_satisfied(
-                    trial.tolist()
-                )
-
-                trial_fitness = self.obj_func(trial, trial_penalty)[0]
-
-                # print(f"DE - Fitness trial: {trial_fitness}")
-
-                diff_penalty = abs(trial_penalty - pop_penalty)
-
-                if diff_penalty < 1e-6:
-                    if trial_fitness < self.fitness[j]:
-                        return trial, trial_fitness
-                    else:
-                        return self.pop[j], self.fitness[j]
-                elif trial_penalty < pop_penalty:
-                    return trial, trial_fitness
-                else:
-                    return self.pop[j], self.fitness[j]
-
-            results = [evaluate_individual(j) for j in range(self.pop_size)]
+            results = [self._evaluate_individual(j) for j in range(self.pop_size)]
 
             for j, (new_individual, new_ind_fitness) in enumerate(results):
                 new_pop[j] = new_individual
