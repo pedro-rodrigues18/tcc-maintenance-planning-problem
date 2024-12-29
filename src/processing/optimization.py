@@ -160,7 +160,7 @@ def _numba_objective_function(
         risk_t /= max(1, scenarios[t - 1])
         mean_risk += risk_t
 
-        risk_by_scenario.sort()
+        risk_by_scenario = np.sort(risk_by_scenario)
         quantile_index = int(np.ceil(quantile * len(risk_by_scenario))) - 1
         excess_t = 0.0
         if len(risk_by_scenario) > 0:
