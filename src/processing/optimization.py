@@ -138,7 +138,7 @@ class Optimization:
         return penalty == 0, penalty
 
 
-@njit
+@njit(fastmath=True)
 def _numba_objective_function(
     start_times, risk_array, deltas, T, quantile, alpha, scenarios, penalty
 ):
