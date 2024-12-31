@@ -49,7 +49,9 @@ class Optimization:
             self.resource_maxs[i] = resource.max
 
         # Arrays for resource workload
-        self.resource_workload = np.zeros((n_resources, n_interventions, T + 1, T + 1))
+        self.resource_workload = np.zeros(
+            (n_resources, n_interventions, T + 1, T + 1), dtype=np.float32
+        )
         for r, resource in enumerate(self.problem.resources):
             for i, intervention in enumerate(self.problem.interventions):
                 try:
