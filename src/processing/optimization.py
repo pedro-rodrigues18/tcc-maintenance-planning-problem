@@ -184,18 +184,16 @@ def _numba_intervention_constraint(start_times, deltas, tmax_values, time_horizo
         start_time = int(start_times[i])
 
         if start_time < 0 or start_time > tmax_values[i]:
-            penalty = float(start_time - tmax_values[i])
-            return True, penalty
+            penalty += float(start_time - tmax_values[i])
 
         if start_time > 0 and start_time <= len(deltas[i]):
             duration = deltas[i, start_time - 1]
             end_time = start_time + duration - 1
 
             if end_time > time_horizon:
-                penalty = float(end_time - time_horizon)
-                return True, penalty
+                penalty += float(end_time - time_horizon)
 
-    return False, penalty
+    return penalty > 0, penalty
 
 
 @njit
