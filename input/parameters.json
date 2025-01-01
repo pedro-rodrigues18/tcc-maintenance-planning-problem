@@ -1,0 +1,113 @@
+{
+    "irace": false,
+    "run_all": false,
+    "set": {
+        "A": {
+            "A_01": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_02": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_03": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_04": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_05": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_06": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_07": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_08": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_09": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_10": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_11": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_12": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_13": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_14": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            },
+            "A_15": {
+                "pop_size": 100,
+                "crossover_rate": 0.8,
+                "mutation_rate": 0.1,
+                "mutation_factor": 0.5,
+                "rho": 0.5
+            }
+        }
+    }
+}
