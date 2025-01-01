@@ -48,7 +48,7 @@ def make_optimization(
 
     Args:
         problem (Problem): The problem to be optimized.
-        instance (dict): The name of the problem instance.
+        instance (str): The name of the problem instance.
         pop_size (int): The population size.
         crossover_rate (float): The crossover rate.
         mutation_rate (float): The mutation rate.
