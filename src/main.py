@@ -154,12 +154,13 @@ def main() -> None:
             mutation_factor = float(sys.argv[5])
             rho = float(sys.argv[6])
         else:
+            dataset = "A"
             instance = "A_09"  # The default instance because it is the smallest and runs faster
-            pop_size = parameters["set"]["A"][instance]["pop_size"]
-            crossover_rate = parameters["set"]["A"][instance]["crossover_rate"]
-            mutation_rate = parameters["set"]["A"][instance]["mutation_rate"]
-            mutation_factor = parameters["set"]["A"][instance]["mutation_factor"]
-            rho = parameters["set"]["A"][instance]["rho"]
+            pop_size = parameters["set"][dataset][instance]["pop_size"]
+            crossover_rate = parameters["set"][dataset][instance]["crossover_rate"]
+            mutation_rate = parameters["set"][dataset][instance]["mutation_rate"]
+            mutation_factor = parameters["set"][dataset][instance]["mutation_factor"]
+            rho = parameters["set"][dataset][instance]["rho"]
 
         problem = load_problem(current_dir, instance)
 

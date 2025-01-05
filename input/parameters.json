@@ -4,109 +4,323 @@
     "set": {
         "A": {
             "A_01": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_02": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_03": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_04": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_05": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_06": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_07": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_08": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_09": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_10": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_11": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_12": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_13": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_14": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             },
             "A_15": {
-                "pop_size": 100,
-                "crossover_rate": 0.8,
-                "mutation_rate": 0.1,
-                "mutation_factor": 0.5,
-                "rho": 0.5
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            }
+        },
+        "B": {
+            "B_01": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_02": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_03": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_04": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_05": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_06": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_07": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_08": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_09": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_10": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_11": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_12": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_13": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_14": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "B_15": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            }
+        },
+        "C": {
+            "C_01": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_02": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_03": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_04": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_05": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_06": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_07": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_08": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_09": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_10": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_11": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_12": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_13": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_14": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
+            "C_15": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
             }
         }
     }
