@@ -16,6 +16,7 @@ class GeneticAlgorithm:
         pop_size: int,
         fitness: np.ndarray,
         obj_func: callable,
+        crossover_rate: float = 0.8,
         mutation_rate: float = 0.1,
         time_limit: int = 60 * 5,  # seconds
     ):
@@ -26,6 +27,7 @@ class GeneticAlgorithm:
         self.pop_size = pop_size
         self.fitness = fitness
         self.obj_func = obj_func
+        self.crossover_rate = crossover_rate
         self.mutation_rate = mutation_rate
         self.time_limit = time_limit
 
@@ -44,7 +46,10 @@ class GeneticAlgorithm:
         idx = np.random.choice(self.pop_size, 2, replace=False)
         a, b = self.pop[idx]
 
-        child = self._reproduce(a, b)
+        if np.random.rand() < self.crossover_rate:
+            child = self._reproduce(a, b)
+        else:
+            child = a
 
         # Mutation
         if np.random.rand() < self.mutation_rate:

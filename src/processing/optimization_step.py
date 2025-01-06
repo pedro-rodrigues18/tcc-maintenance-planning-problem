@@ -66,6 +66,7 @@ class OptimizationStep:
             pop_size=self.pop_size,
             fitness=copy_fitness,
             obj_func=optimization._build_objective_function,
+            crossover_rate=self.crossover_rate,
             mutation_rate=self.mutation_rate,
         )
 
