@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 numpy = "^1.26.4"
 pydantic = "^2.7.1"
+gurobipy = "^12.0.0"
 
 
 [build-system]

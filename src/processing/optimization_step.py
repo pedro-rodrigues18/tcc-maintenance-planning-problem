@@ -4,6 +4,8 @@ from processing.optimization import Optimization
 from processing.differential_evolution import DifferentialEvolution
 from processing.genetic_algorithm import GeneticAlgorithm
 from utils.log import log
+import gurobipy as gp
+from gurobipy import GRB
 
 
 class OptimizationStep:
@@ -35,75 +37,116 @@ class OptimizationStep:
         Returns:
             - optimization_info: Optimization information, including the best solution and objective value.
         """
+        model = gp.Model()
 
-        optimization = Optimization(problem=self.problem)
+        # Create variables
+        x = {
+            i: {
+                t: model.addVar(vtype=GRB.BINARY, name=f"x_{i}_{t}")
+                for t in range(1, self.problem.time_horizon.time_steps + 1)
+            }
+            for i in range(len(self.problem.interventions))
+        }
 
-        bounds = self._create_bounds()
+        # Set objective
+        expr = gp.LinExpr()
 
-        pop = np.random.randint(
-            bounds[:, 0],
-            bounds[:, 1] + 1,
-            (self.pop_size, bounds.shape[0]),
+        for t in range(1, self.problem.time_horizon.time_steps + 1):
+            for s in range(self.problem.scenarios[t - 1]):
+                for i in range(len(self.problem.interventions)):
+                    for st in range(1, self.problem.interventions[i].tmax + 1):
+                        try:
+                            expr.addTerms(
+                                self.problem.interventions[i].risk[str(t)][str(st)][s]
+                                / (
+                                    self.problem.time_horizon.time_steps
+                                    * self.problem.scenarios[t - 1]
+                                ),
+                                x[i][st],
+                            )
+                        except KeyError:
+                            pass
+
+        model.setObjective(
+            expr,
+            GRB.MINIMIZE,
         )
 
-        pop_penalty = [optimization._constraints_satisfied(ind)[1] for ind in pop]
+        # Add constraints
 
-        fitness = np.array(
-            [
-                optimization._build_objective_function(ind, pop_penalty)[0]
-                for (ind, pop_penalty) in zip(pop, pop_penalty)
-            ]
-        )
-
-        copy_pop = np.copy(pop)
-        copy_fitness = np.copy(fitness)
-
-        ga = GeneticAlgorithm(
-            file_name=self.file_name,
-            problem=self.problem,
-            optimization=optimization,
-            pop=copy_pop,
-            pop_size=self.pop_size,
-            fitness=copy_fitness,
-            obj_func=optimization._build_objective_function,
-            crossover_rate=self.crossover_rate,
-            mutation_rate=self.mutation_rate,
-        )
-
-        new_population, new_fitness = ga.optimize()
-
-        # Sort the fitness and population
-        sorted_idx = np.argsort(new_fitness)
-        new_fitness = new_fitness[sorted_idx]
-        new_population = new_population[sorted_idx]
-
-        middle = self.pop_size // 2
-        if self.pop_size % 2 == 0:
-            pop = np.concatenate((pop[:middle], new_population[:middle]), axis=0)
-            fitness = np.concatenate((fitness[:middle], new_fitness[:middle]), axis=0)
-        else:
-            pop = np.concatenate((pop[:middle], new_population[: middle + 1]), axis=0)
-            fitness = np.concatenate(
-                (fitness[:middle], new_fitness[: middle + 1]), axis=0
+        # Every intervention must be performed exactly once
+        for i in range(len(self.problem.interventions)):
+            model.addConstr(
+                gp.quicksum(
+                    x[i][t] for t in range(1, self.problem.interventions[i].tmax + 1)
+                )
+                == 1
             )
 
-        de = DifferentialEvolution(
-            file_name=self.file_name,
-            optimization=optimization,
-            obj_func=optimization._build_objective_function,
-            pop_size=self.pop_size,
-            pop=pop,
-            fitness=fitness,
-            bounds=bounds,
-            mutation_factor=self.mutation_factor,
-            rho=self.rho,
-        )
+        # Resource constraints
+        for r in range(len(self.problem.resources)):
+            for t in range(1, self.problem.time_horizon.time_steps + 1):
+                expr = gp.LinExpr()
 
-        solution, fitness = de.optimize()
+                for i in range(len(self.problem.interventions)):
+                    for st in range(1, self.problem.interventions[i].tmax + 1):
+                        try:
+                            expr.addTerms(
+                                self.problem.interventions[i].resource_workload[
+                                    self.problem.resources[r].name
+                                ][str(t)][str(st)],
+                                x[i][st],
+                            )
+                        except KeyError:
+                            pass
+
+                model.addConstr(self.problem.resources[r].min[t - 1] <= expr)
+                model.addConstr(expr <= self.problem.resources[r].max[t - 1])
+
+        # Exclusion constraints
+
+        for e in self.problem.exclusions:
+            i1, i2, season = (
+                e.interventions[0],
+                e.interventions[1],
+                e.season,
+            )
+
+            i1 = next(
+                i
+                for i, intervention in enumerate(self.problem.interventions)
+                if intervention.name == i1
+            )
+            i2 = next(
+                i
+                for i, intervention in enumerate(self.problem.interventions)
+                if intervention.name == i2
+            )
+
+            for t in season.duration:
+                expr = gp.LinExpr()
+
+                for st in range(1, self.problem.interventions[i1].tmax + 1):
+                    if st <= t <= st + self.problem.interventions[i1].delta[st - 1] - 1:
+                        expr.add(x[i1][st])
+                for st in range(1, self.problem.interventions[i2].tmax + 1):
+                    if st <= t <= st + self.problem.interventions[i2].delta[st - 1] - 1:
+                        expr.add(x[i2][st])
+
+                model.addConstr(expr <= 1)
+
+        model.optimize()
+
+        solution = []
+
+        for i in range(len(self.problem.interventions)):
+            for t in range(1, self.problem.time_horizon.time_steps + 1):
+                if x[i][t].x > 0.5:
+                    solution.append(f"{self.problem.interventions[i].name} {t}")
 
         optimization_info = {
-            "solution": solution,
-            "fitness": fitness,
+            "solution": "\n".join(solution),
+            "fitness": None,
         }
 
         return optimization_info

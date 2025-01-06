@@ -3,6 +3,13 @@
     "run_all": false,
     "set": {
         "A": {
+            "E_01": {
+                "pop_size": 170,
+                "crossover_rate": 0.8159,
+                "mutation_rate": 0.6235,
+                "mutation_factor": 0.3743,
+                "rho": 0.5763
+            },
             "A_01": {
                 "pop_size": 170,
                 "crossover_rate": 0.8159,

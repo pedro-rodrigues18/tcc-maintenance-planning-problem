@@ -154,8 +154,8 @@ def main() -> None:
             mutation_factor = float(sys.argv[5])
             rho = float(sys.argv[6])
         else:
-            dataset = "A"
-            instance = "A_09"  # The default instance because it is the smallest and runs faster
+            dataset = "B"
+            instance = "B_01"  # The default instance because it is the smallest and runs faster
             pop_size = parameters["set"][dataset][instance]["pop_size"]
             crossover_rate = parameters["set"][dataset][instance]["crossover_rate"]
             mutation_rate = parameters["set"][dataset][instance]["mutation_rate"]
