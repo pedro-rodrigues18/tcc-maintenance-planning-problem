@@ -49,6 +49,7 @@ class OptimizationStep:
         gurobi_solution = gb.optimize()
 
         gurobi_solution = gb.get_solution()
+        gurobi_objective_value = gb.get_objective_value()
         solution_formated = format_solution(self.problem.interventions, gurobi_solution)
 
         log(self.file_name, "Gurobi algorithm completed.")
@@ -58,11 +59,12 @@ class OptimizationStep:
         remaining_time = self.time_limit - (time.time() - self.start_time_execution)
 
         if remaining_time <= 0:
-
             log(self.file_name, "Time limit reached.")
+            log(self.file_name, "Returning Gurobi solution.")
+            log(self.file_name, f"Gurobi objective value: {gurobi_objective_value}")
             return {
                 "solution": solution_formated,
-                "objective_value": None,
+                "objective_value": gurobi_objective_value,
             }
 
         log(self.file_name, "Starting Differential Evolution algorithm...")

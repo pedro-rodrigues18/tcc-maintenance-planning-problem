@@ -114,6 +114,9 @@ class Gurobi:
 
                 self.model.addConstr(expr <= 1)
 
+    def get_objective_value(self):
+        return self.model.objVal
+
     def get_solution(self):
         gurobi_solution = []
 
