@@ -19,6 +19,7 @@ class GeneticAlgorithm:
         crossover_rate: float = 0.8,
         mutation_rate: float = 0.1,
         time_limit: int = 60 * 5,  # seconds
+        tol: int = 1e-6,
     ):
         self.file_name = file_name
         self.problem = problem
@@ -30,6 +31,7 @@ class GeneticAlgorithm:
         self.crossover_rate = crossover_rate
         self.mutation_rate = mutation_rate
         self.time_limit = time_limit
+        self.tol = tol
 
     def _reproduce(self, a, b):
         """
@@ -89,7 +91,7 @@ class GeneticAlgorithm:
                 new_pop[i] = new_individual
                 self.fitness[i] = new_fitness
 
-            if np.all(new_pop == self.pop):
+            if np.all(np.abs(self.fitness - self.fitness.mean()) < self.tol):
                 log(f"{self.file_name}", "GA - Converged")
                 log(
                     f"{self.file_name}",

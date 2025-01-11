@@ -15,6 +15,8 @@ from processing.optimization_step import OptimizationStep
 
 from utils.log import log
 
+TIME_LIMIT = 60 * 15  # 15 minutes
+
 
 def load_problem(current_dir, instance) -> Problem:
     """
@@ -41,32 +43,37 @@ def load_problem(current_dir, instance) -> Problem:
 
 
 def make_optimization(
-    problem, instance, pop_size, crossover_rate, mutation_rate, mutation_factor, rho
+    instance,
+    problem,
+    pop_size,
+    crossover_rate,
+    mutation_rate,
+    rho,
 ) -> tuple:
     """
     Perform optimization on the given problem instance using specified parameters.
 
     Args:
-        problem (Problem): The problem to be optimized.
         instance (str): The name of the problem instance.
+        problem (Problem): The problem to be optimized.
         pop_size (int): The population size.
         crossover_rate (float): The crossover rate.
         mutation_rate (float): The mutation rate.
-        mutation_factor (float): The mutation factor.
         rho (float): The parameter rho.
     Returns:
         A tuple containing the solution and its fitness value.
     """
-
+    start_time_execution = time.time()
     log(f"{instance}", "Optimizing the problem...")
 
     optimization_step = OptimizationStep(
+        start_time_execution=start_time_execution,
+        time_limit=TIME_LIMIT,
         problem=problem,
         file_name=instance,
         pop_size=pop_size,
         crossover_rate=crossover_rate,
         mutation_rate=mutation_rate,
-        mutation_factor=mutation_factor,
         rho=rho,
     )
 
@@ -83,33 +90,56 @@ def make_optimization(
 
     log(f"{instance}", "Done!\n")
 
-    return optimization_info["solution"], optimization_info["fitness"]
+    return optimization_info["solution"], optimization_info["objective_value"]
 
 
-def run_all_instances(parameters) -> None:
+def run_all_instances(instances, algorithm_parameters) -> None:
+    """
+    Run all instances
+
+    Args:
+        instances (list): The list of instances
+        algorithm_parameters (dict): The parameters of the instances
+    Returns:
+        None
+    """
+    for instance in instances:
+        problem = load_problem(os.path.dirname(os.path.abspath(__file__)), instance)
+
+        _, fitness = make_optimization(
+            instance=instance,
+            problem=problem,
+            pop_size=algorithm_parameters["pop_size"],
+            crossover_rate=algorithm_parameters["crossover_rate"],
+            mutation_rate=algorithm_parameters["mutation_rate"],
+            rho=algorithm_parameters["rho"],
+        )
+
+        print(f"{instance}: {fitness}")
+
+
+def run_all_instances_parallel(instances, algorithm_parameters) -> None:
     """
     Run instances in parallel with concurrent.futures
 
     Args:
-        parameters (dict): The parameters of the instances
+        instances (list): The list of instances
+        algorithm_parameters (dict): The parameters of the instances
     Returns:
         None
     """
-    instances = parameters["set"]["A"]
-
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = {
             executor.submit(
                 make_optimization,
-                load_problem(os.path.dirname(os.path.abspath(__file__)), instance_name),
                 instance_name,
-                instance_params["pop_size"],
-                instance_params["crossover_rate"],
-                instance_params["mutation_rate"],
-                instance_params["mutation_factor"],
-                instance_params["rho"],
+                load_problem(os.path.dirname(os.path.abspath(__file__)), instance_name),
+                algorithm_parameters["pop_size"],
+                algorithm_parameters["crossover_rate"],
+                algorithm_parameters["mutation_rate"],
+                algorithm_parameters["rho"],
             ): instance_name
-            for instance_name, instance_params in instances.items()
+            for instance_name in instances
         }
 
         for future in concurrent.futures.as_completed(results):
@@ -139,44 +169,47 @@ def main() -> None:
         raise FileNotFoundError(f"File {parameters_path} not found")
 
     irace = parameters["irace"]  # If True, the parameters will be passed by irace
-    run_all = parameters[
-        "run_all"
-    ]  # This parameter is used to run all instances in parallel
+    run_all = parameters["run_all"]
+    parallel = parameters["parallel"]
+    algorithm_parameters = parameters["algorithm_parameters"]
+
+    # List all instances in the input folder except the parameters file
+    input_dir = Path(current_dir).parent / "input"
+    instances = [p.stem for p in input_dir.glob("*.json") if p.stem != "parameters"]
 
     if run_all:
-        run_all_instances(parameters)
+        if parallel:
+            run_all_instances_parallel(instances, algorithm_parameters)
+        else:
+            run_all_instances(instances, algorithm_parameters)
     else:
         if irace:
             instance = sys.argv[1]
             pop_size = int(sys.argv[2])
             crossover_rate = float(sys.argv[3])
             mutation_rate = float(sys.argv[4])
-            mutation_factor = float(sys.argv[5])
-            rho = float(sys.argv[6])
+            rho = float(sys.argv[5])
         else:
-            dataset = "B"
-            instance = "B_01"  # The default instance because it is the smallest and runs faster
-            pop_size = parameters["set"][dataset][instance]["pop_size"]
-            crossover_rate = parameters["set"][dataset][instance]["crossover_rate"]
-            mutation_rate = parameters["set"][dataset][instance]["mutation_rate"]
-            mutation_factor = parameters["set"][dataset][instance]["mutation_factor"]
-            rho = parameters["set"][dataset][instance]["rho"]
+            instance = "A_09"  # The default instance because it is the smallest and runs faster
+            pop_size = algorithm_parameters["pop_size"]
+            crossover_rate = algorithm_parameters["crossover_rate"]
+            mutation_rate = algorithm_parameters["mutation_rate"]
+            rho = algorithm_parameters["rho"]
 
         problem = load_problem(current_dir, instance)
 
         # ------------- Make the Optimization ----------------
 
-        _, solution_fitness = make_optimization(
-            problem,
-            instance,
-            pop_size,
-            crossover_rate,
-            mutation_rate,
-            mutation_factor,
-            rho,
+        _, objective_value = make_optimization(
+            instance=instance,
+            problem=problem,
+            pop_size=pop_size,
+            crossover_rate=crossover_rate,
+            mutation_rate=mutation_rate,
+            rho=rho,
         )
 
-        print(f"{instance}: {solution_fitness}")
+        print(f"{instance}: {objective_value}")
 
 
 if __name__ == "__main__":

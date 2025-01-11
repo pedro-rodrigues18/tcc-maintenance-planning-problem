@@ -2,12 +2,14 @@ import time
 import numpy as np
 
 from processing.optimization import Optimization
-from utils.log import log
+from utils.format_solution import format_solution
 
 
 class DifferentialEvolution:
     def __init__(
         self,
+        start_time_execution: float,
+        time_limit: int,
         file_name: str,
         optimization: Optimization,
         pop: np.ndarray,
@@ -15,11 +17,11 @@ class DifferentialEvolution:
         obj_func: callable,
         bounds: np.ndarray,
         pop_size: int,
-        mutation_factor: float = 0.8,
+        mutation_rate: float = 0.8,
         rho: float = 0.5,
-        time_limit: int = 60 * 10,  # seconds
         tol: int = 1e-6,
     ) -> None:
+        self.start_time_execution = start_time_execution
         self.file_name = file_name
         self.optimization = optimization
         self.pop = pop
@@ -27,10 +29,11 @@ class DifferentialEvolution:
         self.obj_func = obj_func
         self.bounds = bounds
         self.pop_size = pop_size
-        self.mutation_factor = mutation_factor
+        self.mutation_rate = mutation_rate
         self.rho = rho
         self.time_limit = time_limit
         self.tol = tol
+        self.max_iterations_without_improvement = 2000
 
     def _exponential_crossover(self, x, v):
         n = len(x)
@@ -40,7 +43,6 @@ class DifferentialEvolution:
         )  # Length based on exponential distribution
         k2 = k1 + d
 
-        # Indicator vector
         r = np.zeros(n, dtype=int)
         for j in range(n):
             if k2 <= n and k1 <= j < k2:
@@ -48,7 +50,6 @@ class DifferentialEvolution:
             elif k2 > n and (j < k2 % n or j >= k1):
                 r[j] = 1
 
-        # Recombination
         x_recomb = np.where(r == 1, v, x)
         return x_recomb
 
@@ -56,77 +57,61 @@ class DifferentialEvolution:
         idx = np.random.choice(self.pop_size, 3, replace=False)
         a, b, c = self.pop[idx]
 
-        # Mutation
         mutant = np.clip(
-            a + self.mutation_factor * (b - c),
+            a + self.mutation_rate * (b - c),
             self.bounds[:, 0],
             self.bounds[:, 1],
         ).astype(int)
 
-        # Crossover
-        trial = self._exponential_crossover(self.pop[j], mutant)
+        best_individual = self.pop[self.fitness.argmin()]
+
+        trial = self._exponential_crossover(best_individual, mutant)
 
         _, pop_penalty = self.optimization._constraints_satisfied(self.pop[j])
         _, trial_penalty = self.optimization._constraints_satisfied(trial.tolist())
 
         trial_fitness = self.obj_func(trial, trial_penalty)[0]
 
-        # print(f"DE - Fitness trial: {trial_fitness}")
-
         diff_penalty = abs(trial_penalty - pop_penalty)
 
-        if diff_penalty < 1e-6:
-            if trial_fitness < self.fitness[j]:
-                return trial, trial_fitness
-            else:
-                return self.pop[j], self.fitness[j]
-        elif trial_penalty < pop_penalty:
+        if trial_fitness < self.fitness[j] and diff_penalty < 1e-6:
             return trial, trial_fitness
         else:
             return self.pop[j], self.fitness[j]
 
     def optimize(self):
-        start_time = time.time()
-
-        while True:
-            elapsed_time = time.time() - start_time
-            # log(f"{self.file_name}", f"DE - Elapsed time: {elapsed_time:.2f} seconds.")
-            if elapsed_time > self.time_limit:
-                log(
-                    f"{self.file_name}",
-                    f"DE - Maximum execution time reached: {elapsed_time:.2f} seconds.",
-                )
-                break
-
+        remaining_time = self.time_limit - (time.time() - self.start_time_execution)
+        iterations_without_improvement = 0
+        while remaining_time > 0:
             new_pop = np.zeros_like(self.pop)
             new_fitness = np.zeros_like(self.fitness)
 
             results = [self._evaluate_individual(j) for j in range(self.pop_size)]
 
+            current_best_fitness = self.fitness.min()
+            new_best_fitness = min(new_ind_fitness for _, new_ind_fitness in results)
+            if new_best_fitness < current_best_fitness:
+                # print(f"New best fitness: {new_best_fitness}", end="\r")
+                iterations_without_improvement = 0
+            else:
+                iterations_without_improvement += 1
+
             for j, (new_individual, new_ind_fitness) in enumerate(results):
                 new_pop[j] = new_individual
                 new_fitness[j] = new_ind_fitness
 
-            if np.all(np.abs(self.fitness - self.fitness.mean()) < self.tol):
-                break
-
             self.pop = new_pop
             self.fitness = new_fitness
+
+            if iterations_without_improvement > self.max_iterations_without_improvement:
+                break
+
+            remaining_time = self.time_limit - (time.time() - self.start_time_execution)
 
         best_idx = self.fitness.argmin()
         best_individual = self.pop[best_idx]
 
-        eval = self.obj_func(best_individual)
-
-        log(f"{self.file_name}", f"Objective: {eval[0]}")
-        log(f"{self.file_name}", f"Mean risk: {eval[1]}")
-        log(f"{self.file_name}", f"Expected excess: {eval[2]}")
-
-        return self._format_solution(best_individual), self.fitness[best_idx]
-
-    def _format_solution(self, best_individual):
-        solution = []
-        for i, start_time in enumerate(best_individual):
-            intervention_name = self.optimization.problem.interventions[i].name
-            solution.append(f"{intervention_name} {start_time}")
-        return "\n".join(solution)
+        return (
+            format_solution(self.optimization.problem.interventions, best_individual),
+            self.fitness[best_idx],
+        )

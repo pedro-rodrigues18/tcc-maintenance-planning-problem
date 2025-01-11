@@ -95,7 +95,7 @@ class Optimization:
         self.time_steps = T
         self.scenarios_array = np.array(self.problem.scenarios)
 
-    def _build_objective_function(self, start_times, penalty=0) -> float:
+    def _objective_function(self, start_times, penalty=0) -> float:
         """
         Optimized objective function interface
         """
