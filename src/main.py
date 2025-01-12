@@ -175,7 +175,12 @@ def main() -> None:
 
     # List all instances in the input folder except the parameters file
     input_dir = Path(current_dir).parent / "input"
-    instances = [p.stem for p in input_dir.glob("*.json") if p.stem != "parameters"]
+    instances = [
+        p.stem
+        for p in input_dir.glob("*.json")
+        if p.stem != "parameters" and p.stem != "E_01" and p.stem != "E_02"
+    ]
+    instances = sorted(instances)
 
     if run_all:
         if parallel:
