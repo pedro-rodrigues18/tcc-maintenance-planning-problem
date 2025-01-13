@@ -73,18 +73,12 @@ class OptimizationStep:
 
         bounds = self._create_bounds()
 
-        # Create the initial population based on the gurobi solution
-        pop = np.zeros((self.pop_size - 1, bounds.shape[0]))
-        probabity_change_solution = 0.75
-        for i in range(len(gurobi_solution)):
-            if np.random.rand() < probabity_change_solution:
-                pop[:, i] = np.random.randint(
-                    bounds[i][0], bounds[i][1], size=self.pop_size - 1
-                )
-            else:
-                pop[:, i] = np.random.randint(
-                    bounds[i][0], bounds[i][1], size=self.pop_size - 1
-                )
+        # Initial population
+        pop = np.random.randint(
+            bounds[:, 0],
+            bounds[:, 1] + 1,
+            (self.pop_size - 1, bounds.shape[0]),
+        )
 
         # Add the Gurobi solution to the population
         pop = np.vstack(

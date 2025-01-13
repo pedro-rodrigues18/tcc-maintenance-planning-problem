@@ -33,7 +33,7 @@ class DifferentialEvolution:
         self.rho = rho
         self.time_limit = time_limit
         self.tol = tol
-        self.max_iterations_without_improvement = 2000
+        self.max_iterations_without_improvement = 100
 
     def _exponential_crossover(self, x, v):
         n = len(x)
@@ -54,18 +54,16 @@ class DifferentialEvolution:
         return x_recomb
 
     def _evaluate_individual(self, j):
-        idx = np.random.choice(self.pop_size, 3, replace=False)
-        a, b, c = self.pop[idx]
-
-        mutant = np.clip(
-            a + self.mutation_rate * (b - c),
-            self.bounds[:, 0],
-            self.bounds[:, 1],
-        ).astype(int)
-
+        # Mutation DE/best/1
         best_individual = self.pop[self.fitness.argmin()]
+        x_r1, x_r2 = np.random.choice(self.pop_size, 2, replace=False)
+        mutant = best_individual + self.mutation_rate * (
+            self.pop[x_r1] - self.pop[x_r2]
+        )
+        mutant = np.round(mutant).astype(int)
+        mutant = np.clip(mutant, self.bounds[:, 0], self.bounds[:, 1])
 
-        trial = self._exponential_crossover(best_individual, mutant)
+        trial = self._exponential_crossover(self.pop[j], mutant)
 
         _, pop_penalty = self.optimization._constraints_satisfied(self.pop[j])
         _, trial_penalty = self.optimization._constraints_satisfied(trial.tolist())
@@ -78,6 +76,20 @@ class DifferentialEvolution:
             return trial, trial_fitness
         else:
             return self.pop[j], self.fitness[j]
+
+    def _reset_population(self, best_individual):
+        self.pop = np.random.randint(
+            self.bounds[:, 0],
+            self.bounds[:, 1] + 1,
+            (self.pop_size - 1, self.bounds.shape[0]),
+        )
+        self.pop = np.vstack((self.pop, best_individual))
+        penalty = np.array(
+            [self.optimization._constraints_satisfied(ind)[1] for ind in self.pop]
+        )
+        self.fitness = np.array(
+            [self.obj_func(ind, pen)[0] for ind, pen in zip(self.pop, penalty)]
+        )
 
     def optimize(self):
         remaining_time = self.time_limit - (time.time() - self.start_time_execution)
@@ -104,7 +116,9 @@ class DifferentialEvolution:
             self.fitness = new_fitness
 
             if iterations_without_improvement > self.max_iterations_without_improvement:
-                break
+                best_individual = self.pop[self.fitness.argmin()]
+                self._reset_population(best_individual)
+                iterations_without_improvement = 0
 
             remaining_time = self.time_limit - (time.time() - self.start_time_execution)
 
