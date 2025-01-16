@@ -18,7 +18,7 @@ class DifferentialEvolution:
         bounds: np.ndarray,
         pop_size: int,
         mutation_rate: float = 0.8,
-        rho: float = 0.5,
+        crossover_rate: float = 0.5,
         tol: int = 1e-6,
     ) -> None:
         self.start_time_execution = start_time_execution
@@ -30,7 +30,7 @@ class DifferentialEvolution:
         self.bounds = bounds
         self.pop_size = pop_size
         self.mutation_rate = mutation_rate
-        self.rho = rho
+        self.crossover_rate = crossover_rate
         self.time_limit = time_limit
         self.tol = tol
         self.max_iterations_without_improvement = 100
@@ -39,7 +39,7 @@ class DifferentialEvolution:
         n = len(x)
         k1 = np.random.randint(0, n)  # Random initial position
         d = np.random.geometric(
-            p=1 - self.rho
+            p=1 - self.crossover_rate
         )  # Length based on exponential distribution
         k2 = k1 + d
 

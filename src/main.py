@@ -48,7 +48,6 @@ def make_optimization(
     pop_size,
     crossover_rate,
     mutation_rate,
-    rho,
 ) -> tuple:
     """
     Perform optimization on the given problem instance using specified parameters.
@@ -59,7 +58,6 @@ def make_optimization(
         pop_size (int): The population size.
         crossover_rate (float): The crossover rate.
         mutation_rate (float): The mutation rate.
-        rho (float): The parameter rho.
     Returns:
         A tuple containing the solution and its fitness value.
     """
@@ -74,7 +72,6 @@ def make_optimization(
         pop_size=pop_size,
         crossover_rate=crossover_rate,
         mutation_rate=mutation_rate,
-        rho=rho,
     )
 
     optimization_info = optimization_step()
@@ -112,7 +109,6 @@ def run_all_instances(instances, algorithm_parameters) -> None:
             pop_size=algorithm_parameters["pop_size"],
             crossover_rate=algorithm_parameters["crossover_rate"],
             mutation_rate=algorithm_parameters["mutation_rate"],
-            rho=algorithm_parameters["rho"],
         )
 
         print(f"{instance}: {fitness}")
@@ -137,7 +133,6 @@ def run_all_instances_parallel(instances, algorithm_parameters) -> None:
                 algorithm_parameters["pop_size"],
                 algorithm_parameters["crossover_rate"],
                 algorithm_parameters["mutation_rate"],
-                algorithm_parameters["rho"],
             ): instance_name
             for instance_name in instances
         }
@@ -193,13 +188,11 @@ def main() -> None:
             pop_size = int(sys.argv[2])
             crossover_rate = float(sys.argv[3])
             mutation_rate = float(sys.argv[4])
-            rho = float(sys.argv[5])
         else:
             instance = "A_09"  # The default instance because it is the smallest and runs faster
             pop_size = algorithm_parameters["pop_size"]
             crossover_rate = algorithm_parameters["crossover_rate"]
             mutation_rate = algorithm_parameters["mutation_rate"]
-            rho = algorithm_parameters["rho"]
 
         problem = load_problem(current_dir, instance)
 
@@ -211,7 +204,6 @@ def main() -> None:
             pop_size=pop_size,
             crossover_rate=crossover_rate,
             mutation_rate=mutation_rate,
-            rho=rho,
         )
 
         print(f"{instance}: {objective_value}")

@@ -4,8 +4,7 @@
     "parallel": false,
     "algorithm_parameters": {
         "pop_size": 10,
-        "crossover_rate": 0.8159,
         "mutation_rate": 0.6235,
-        "rho": 0.5763
+        "crossover_rate": 0.5763
     }
 }

@@ -16,18 +16,16 @@ class OptimizationStep:
         problem: Problem,
         file_name: str = None,
         pop_size: int = 100,
-        crossover_rate: float = 0.8,
         mutation_rate: float = 0.1,
-        rho: float = 0.5,
+        crossover_rate: float = 0.5,
     ) -> None:
         self.start_time_execution = start_time_execution
         self.time_limit = time_limit
         self.problem = problem
         self.file_name = file_name
         self.pop_size = pop_size
-        self.crossover_rate = crossover_rate
         self.mutation_rate = mutation_rate
-        self.rho = rho
+        self.crossover_rate = crossover_rate
 
     def __call__(self):
         return self._optimization_step()
@@ -109,6 +107,7 @@ class OptimizationStep:
             fitness=fitness,
             bounds=bounds,
             mutation_rate=self.mutation_rate,
+            crossover_rate=self.crossover_rate,
         )
 
         solution, fitness = de.optimize()
