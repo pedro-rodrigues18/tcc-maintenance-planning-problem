@@ -1,5 +1,4 @@
 pop_size            ""     i (50, 200)
 crossover_rate      ""     r (0.1, 0.9)
-mutation_rate       ""     r (0.01, 0.3)
-mutation_factor     ""     r (0.1, 0.9)
+mutation_rate       ""     r (0.1, 0.9)
 rho                 ""     r (0.1, 0.9)
